@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import compression from "compression";
 import morgan from "morgan";
 import { env } from "./config/env.js";
 import toolsRoutes from "./routes/toolsRoutes.js";
@@ -11,7 +12,16 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 export function createApp() {
   const app = express();
 
+  // Behind a reverse proxy (nginx, a hosting platform's load balancer) in
+  // production — without this, express-rate-limit and req.ip both see the
+  // proxy's IP for every request instead of the real client, which breaks
+  // rate limiting entirely (everyone shares one bucket).
+  if (env.nodeEnv === "production") {
+    app.set("trust proxy", 1);
+  }
+
   app.use(helmet());
+  app.use(compression());
   app.use(
     cors({
       origin: env.clientOrigin,

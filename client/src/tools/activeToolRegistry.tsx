@@ -4,6 +4,7 @@ import ActiveFileTool from "./ActiveFileTool";
 import WordCounterTool from "./WordCounterTool";
 import ImageInfoTool from "./ImageInfoTool";
 import FillPdfTool from "./FillPdfTool";
+import { isClientPdfTool, renderClientPdfTool } from "./clientPdfToolRegistry";
 import DynamicOptionsForm from "./DynamicOptionsForm";
 import { TOOL_FIELD_SPECS, coerceOptions } from "./toolFieldSpecs";
 import { CompressImageOptions, CompressPdfOptions } from "./toolOptionFields";
@@ -19,21 +20,15 @@ const SIMPLE_CONVERTER_SLUGS = [
   "jpg-to-pdf",
   "png-to-pdf",
 ];
-const SIMPLE_PDF_TRANSFORM_SLUGS = ["flatten-pdf", "repair-pdf"];
 const CLIENT_ONLY_INFO_SLUGS = ["image-dimensions", "image-format-detector"];
 
 const DEFAULT_OPTIONS_BY_SLUG: Record<string, Record<string, unknown>> = {
-  "rotate-pdf": { degrees: 90 },
-  "crop-pdf": { marginPercent: 5 },
-  "add-page-numbers": { position: "bottom-center", startAt: 1 },
-  "sign-pdf": { position: "bottom-right" },
+  "compress-pdf": { quality: "balanced" },
   "rotate-image": { degrees: 90 },
   "flip-image": { direction: "horizontal" },
   "image-dpi-changer": { dpi: 300 },
-  "compress-pdf": { quality: "balanced" },
 };
 
-const MIN_TWO_FILES = (count: number) => (count < 2 ? "Upload at least two PDF files to merge." : null);
 const EXACTLY_TWO_FILES = (count: number) => (count !== 2 ? "Upload exactly two PDF files to compare." : null);
 
 /**
@@ -50,9 +45,13 @@ export function renderActiveTool(tool: Tool): ReactNode {
     return <ImageInfoTool mode={tool.slug === "image-dimensions" ? "dimensions" : "format"} />;
   }
 
-  if (tool.slug === "merge-pdf") {
-    return <ActiveFileTool tool={tool} validateBeforeSubmit={MIN_TWO_FILES} />;
+  // Client-side pdf-lib tools take priority — no upload, no server
+  // round-trip, matches ihatepdf.cv's core "never leaves your device" pitch
+  // for every tool where that's actually achievable (pure pdf-lib logic).
+  if (isClientPdfTool(tool.slug)) {
+    return renderClientPdfTool(tool);
   }
+
   if (tool.slug === "compare-pdfs") {
     return <ActiveFileTool tool={tool} validateBeforeSubmit={EXACTLY_TWO_FILES} />;
   }
@@ -77,7 +76,7 @@ export function renderActiveTool(tool: Tool): ReactNode {
     );
   }
 
-  if (SIMPLE_CONVERTER_SLUGS.includes(tool.slug) || SIMPLE_PDF_TRANSFORM_SLUGS.includes(tool.slug)) {
+  if (SIMPLE_CONVERTER_SLUGS.includes(tool.slug)) {
     return <ActiveFileTool tool={tool} />;
   }
 

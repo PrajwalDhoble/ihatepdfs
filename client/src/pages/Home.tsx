@@ -6,24 +6,27 @@ import FAQ from "@/components/FAQ";
 import AdSlot from "@/components/AdSlot";
 import { Link } from "react-router-dom";
 import { buildWebsiteSchema, buildOrganizationSchema } from "@/seo/structuredData";
+import { useRecentTools } from "@/hooks/useRecentTools";
 
 const POPULAR_SLUGS = ["compress-pdf", "merge-pdf", "split-pdf", "pdf-to-jpg", "jpg-to-pdf", "compress-image", "resize-image"];
 
 const TRUST_POINTS = [
-  { title: "Fast", text: "Most files process in seconds, not minutes." },
+  { title: "Fast", text: "Most files process in seconds — many tools run instantly in your browser." },
   { title: "Simple", text: "No learning curve — upload, process, download." },
-  { title: "Secure", text: "Files are processed temporarily and removed automatically." },
-  { title: "No installation", text: "Works entirely in your browser." },
+  { title: "Private", text: "PDF page tools process locally and are never uploaded. No watermark, ever." },
+  { title: "No installation", text: "Works entirely in your browser, on any device." },
 ];
 
 const HOME_FAQ = [
-  { q: "Do I need an account to use RepairMyPDF?", a: "No — most basic tools work without creating an account." },
-  { q: "Is RepairMyPDF free to use?", a: "Yes, core tools are free. Optional Pro features may be added in the future for larger files and higher limits." },
-  { q: "Are my files stored permanently?", a: "No. Files are processed in a temporary, isolated workspace and automatically deleted after processing." },
+  { q: "Do I need an account to use RepairMyPDF?", a: "No — no tool requires an account or sign-up." },
+  { q: "Is RepairMyPDF free to use?", a: "Yes, all core tools are free with no watermark added to your files." },
+  { q: "Are my files ever uploaded to a server?", a: "For most PDF page tools (merge, split, rotate, watermark, and more), no — they run entirely in your browser and the file never leaves your device. Tools that need format conversion or OCR do process on a server, in an isolated, temporary workspace that's deleted immediately afterward." },
 ];
 
 export default function Home() {
   const popularTools = POPULAR_SLUGS.map(getToolBySlug).filter(Boolean) as NonNullable<ReturnType<typeof getToolBySlug>>[];
+  const { recentSlugs } = useRecentTools();
+  const recentTools = recentSlugs.map(getToolBySlug).filter(Boolean) as NonNullable<ReturnType<typeof getToolBySlug>>[];
 
   return (
     <>
@@ -56,6 +59,17 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {recentTools.length > 0 && (
+        <section className="container" style={{ marginTop: "var(--space-6)" }}>
+          <h2 style={{ fontSize: 20 }}>Recently used</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "var(--space-4)" }}>
+            {recentTools.map((tool) => (
+              <ToolCard key={tool.id} tool={tool} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="container" style={{ marginTop: "var(--space-7)" }}>
         <AdSlot placement="in-content" />

@@ -33,6 +33,21 @@ async function main() {
 
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
+
+  // Without these, an uncaught exception or a rejected promise with no
+  // .catch() anywhere in the call chain crashes the process silently (or
+  // leaves it in an undefined state) with nothing but Node's default
+  // one-line stack trace, if that. Logging explicitly here means a crash
+  // in production actually leaves a trace to debug from, and exits
+  // deliberately rather than limping on in a broken state.
+  process.on("uncaughtException", (err) => {
+    console.error("[fatal] Uncaught exception:", err);
+    process.exit(1);
+  });
+  process.on("unhandledRejection", (reason) => {
+    console.error("[fatal] Unhandled promise rejection:", reason);
+    process.exit(1);
+  });
 }
 
 main().catch((err) => {

@@ -7,6 +7,7 @@ import RelatedTools from "@/components/RelatedTools";
 import AdSlot from "@/components/AdSlot";
 import { buildToolSchema, buildBreadcrumbSchema } from "@/seo/structuredData";
 import { renderActiveTool } from "@/tools/activeToolRegistry";
+import { useRecordToolVisit } from "@/hooks/useRecentTools";
 
 interface ToolPageProps {
   /** Optional override, used when resolved from a bare top-level slug. */
@@ -17,6 +18,8 @@ export default function ToolPage({ slug }: ToolPageProps) {
   const { toolSlug } = useParams<{ toolSlug: string }>();
   const resolvedSlug = slug ?? toolSlug;
   const tool = resolvedSlug ? getToolBySlug(resolvedSlug) : undefined;
+
+  useRecordToolVisit(resolvedSlug ?? "");
 
   if (!tool) return <Navigate to="/404" replace />;
 

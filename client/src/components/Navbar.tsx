@@ -1,6 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { CATEGORIES } from "@shared/tools";
 import SearchBox from "./SearchBox";
+import ThemeToggle from "./ThemeToggle";
 
 const NAV_CATEGORIES = CATEGORIES.slice(0, 5); // PDF, Image, Document, Converter, Text
 
@@ -50,6 +51,8 @@ export default function Navbar() {
         <div style={{ minWidth: 220, maxWidth: 320, flex: "0 1 320px" }}>
           <SearchBox compact />
         </div>
+
+        <ThemeToggle />
       </div>
     </header>
   );

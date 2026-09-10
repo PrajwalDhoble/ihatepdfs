@@ -7,7 +7,7 @@ interface SEOHeadProps {
   structuredData?: object | object[];
 }
 
-const SITE_URL = "https://www.repairmypdf.com"; // placeholder production domain
+const SITE_URL = import.meta.env.VITE_SITE_URL ?? "https://www.repairmypdf.com";
 
 function setMeta(name: string, content: string, attr: "name" | "property" = "name") {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${name}"]`);
@@ -42,9 +42,13 @@ export default function SEOHead({ title, description, canonical, structuredData 
     setMeta("og:description", description, "property");
     setMeta("og:url", `${SITE_URL}${canonical}`, "property");
     setMeta("og:type", "website", "property");
+    setMeta("og:image", `${SITE_URL}/og-image.png`, "property");
+    setMeta("og:image:width", "1200", "property");
+    setMeta("og:image:height", "630", "property");
     setMeta("twitter:card", "summary_large_image");
     setMeta("twitter:title", title);
     setMeta("twitter:description", description);
+    setMeta("twitter:image", `${SITE_URL}/og-image.png`);
 
     const scriptId = "seo-structured-data";
     let script = document.getElementById(scriptId) as HTMLScriptElement | null;

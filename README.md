@@ -115,8 +115,12 @@ Client on `:8080` (nginx, proxies `/api`), server on `:4000`. To get Protect/Unl
 
 - `npm run build:client` → static assets in `client/dist`
 - `npm run build:server` → compiled JS in `server/dist`, run with `node dist/server/src/index.js`
-- Set `NODE_ENV=production`, real `SITE_URL`/`CLIENT_ORIGIN`, and your real `CLOUDCONVERT_API_KEY`
-- For crawlable SEO on tool/category pages, prerender routes at build time — not yet implemented
+- Set `NODE_ENV=production`, real `SITE_URL`/`CLIENT_ORIGIN` (server) and `VITE_SITE_URL` (client build-time env), and your real `CLOUDCONVERT_API_KEY`
+- **HTTPS**: this app doesn't terminate TLS itself — put it behind a reverse proxy (nginx, as in `docker/nginx.conf`) or your hosting platform's built-in HTTPS (Vercel/Render/Railway/etc. all handle this automatically)
+- **Process management**: run the server with something that restarts it on crash — `pm2`, a systemd unit, or your platform's built-in process supervisor. `NODE_ENV=production` also enables `trust proxy` automatically, which is required for rate limiting to see real client IPs instead of the proxy's
+- **Favicon/tab icon**: already generated (`client/public/favicon.ico`, `favicon.svg`, and PNG sizes for Apple/Android home-screen icons) and wired into `index.html` + `manifest.json` — nothing to add here
+- **Health check**: `GET /api/health` — point your hosting platform's health check / uptime monitor at this
+- For crawlable SEO on tool/category pages, prerender routes at build time — not yet implemented (see below)
 
 ## Security
 
@@ -126,6 +130,8 @@ Client on `:8080` (nginx, proxies `/api`), server on `:4000`. To get Protect/Unl
 - Isolated temp workspace per job, deleted after download or on a timed sweep, including on failure
 - Rate limiting, CORS restricted to the configured client origin, `helmet` security headers
 - Corrupted/malicious PDFs fail with a clear error instead of crashing the process
+- `trust proxy` enabled in production so rate limiting sees real client IPs when running behind nginx/a load balancer, not the proxy's own IP
+- Process-level `uncaughtException`/`unhandledRejection` handlers log and exit deliberately instead of leaving the server in a silently broken state
 - **Fixed bug (previous session):** multer originally wrote uploads to a hardcoded `/tmp`, separate from the job workspace under `TEMP_DIR` — this caused cross-device rename failures (reliably in Docker, always on Windows). Uploads now land inside `TEMP_DIR/_incoming` so the later move is always same-filesystem.
 - **Fixed bug (previous session):** `shared/tools/index.ts` used `export *`, which is ambiguous for isolated-file transpilers like the one `tsx` uses and could silently drop real exports depending on platform. Replaced with explicit named re-exports.
 - qpdf and CloudConvert calls run with the same file-signature validation as every other tool before any external process/API sees the file.
@@ -136,8 +142,16 @@ Client on `:8080` (nginx, proxies `/api`), server on `:4000`. To get Protect/Unl
 - `GET /sitemap.xml` / `GET /robots.txt` generated dynamically — every active tool is now included
 - Client-side rendering means crawlers currently see JS-rendered content — build-time prerendering is the next step
 
-## Adding a new tool
+## Extra features beyond core file tools
 
+Added after a competitive look at other free PDF tool sites on the market:
+
+- **Client-side processing for 15 PDF tools** — Merge, Split, Rotate, Delete/Extract/Rearrange Pages, Crop, Resize, Watermark, Page Numbers, Edit Metadata, Flatten, Sign (stamp), Repair, and Annotate all run **entirely in your browser** via `pdf-lib` (`client/src/lib/clientPdf.ts`) — no upload, no server round-trip, no dependency on the backend at all for these. The file never leaves your device. Each of these tool pages shows a "Processed locally — never uploaded" badge, so it's provably true, not just a claim.
+- **Dark mode** — toggle in the navbar, persisted, respects system preference by default (`client/src/hooks/useTheme.ts`).
+- **Recently used tools** — shown on the homepage, tracked via `localStorage`, no account needed (`client/src/hooks/useRecentTools.ts`).
+- **Basic offline support (PWA)** — `client/public/manifest.json` + `client/public/service-worker.js` cache the app shell and any visited page, so a repeat visit works without a network connection for pages you've already loaded. Intentionally simple (network-first with a cache fallback) rather than a full offline-first rebuild.
+
+## Adding a new tool
 1. Add an entry to `shared/tools/registry.ts`, `status: "coming-soon"` until ready.
 2. Implement its processor in `server/src/processors/` (`ProcessorFn` signature in `processors/index.ts`).
 3. Register it: `registerProcessor("your-slug", yourFn)` in `server/src/processors/register.ts`.
