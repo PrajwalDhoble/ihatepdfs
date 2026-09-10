@@ -38,8 +38,10 @@ function parsePageList(input: string, totalPages: number): number[] {
 }
 
 function toBlob(bytes: Uint8Array): Blob {
-  return new Blob([bytes], { type: "application/pdf" });
-}
+const buffer = new ArrayBuffer(bytes.byteLength);
+new Uint8Array(buffer).set(bytes);
+
+return new Blob([buffer], { type: "application/pdf" });}
 
 export async function mergePdfsClient(files: File[]): Promise<Blob> {
   if (files.length < 2) throw new ClientPdfError("Select at least two PDF files to merge.");
