@@ -209,3 +209,112 @@ export function makeFormatConverter(targetFormat: SupportedFormat) {
     return outputs;
   };
 }
+
+interface CropOptions {
+  left?: number;
+  top?: number;
+  width?: number;
+  height?: number;
+}
+
+export async function cropImage({ inputPaths, outputDir, options }: ProcessorInput): Promise<string[]> {
+  const opts = options as CropOptions;
+  if (!opts.width || !opts.height) {
+    throw new AppError("Provide a crop width and height.", "MISSING_OPTIONS", 400);
+  }
+
+  const outputs: string[] = [];
+  for (const inputPath of inputPaths) {
+    const format = normalizeFormat(path.extname(inputPath).replace(".", ""));
+    const buffer = await sharp(inputPath)
+      .extract({ left: opts.left ?? 0, top: opts.top ?? 0, width: opts.width, height: opts.height })
+      .toBuffer();
+
+    const baseName = path.basename(inputPath, path.extname(inputPath));
+    const outputPath = path.join(outputDir, `${baseName}-cropped.${format === "jpeg" ? "jpg" : format}`);
+    await fs.writeFile(outputPath, buffer);
+    outputs.push(outputPath);
+  }
+  return outputs;
+}
+
+interface RotateOptions {
+  degrees?: number;
+}
+
+export async function rotateImage({ inputPaths, outputDir, options }: ProcessorInput): Promise<string[]> {
+  const opts = options as RotateOptions;
+  const angle = opts.degrees ?? 90;
+
+  const outputs: string[] = [];
+  for (const inputPath of inputPaths) {
+    const format = normalizeFormat(path.extname(inputPath).replace(".", ""));
+    const buffer = await sharp(inputPath).rotate(angle).toBuffer();
+    const baseName = path.basename(inputPath, path.extname(inputPath));
+    const outputPath = path.join(outputDir, `${baseName}-rotated.${format === "jpeg" ? "jpg" : format}`);
+    await fs.writeFile(outputPath, buffer);
+    outputs.push(outputPath);
+  }
+  return outputs;
+}
+
+interface FlipOptions {
+  direction?: "horizontal" | "vertical";
+}
+
+export async function flipImage({ inputPaths, outputDir, options }: ProcessorInput): Promise<string[]> {
+  const opts = options as FlipOptions;
+  const direction = opts.direction ?? "horizontal";
+
+  const outputs: string[] = [];
+  for (const inputPath of inputPaths) {
+    const format = normalizeFormat(path.extname(inputPath).replace(".", ""));
+    let pipeline = sharp(inputPath);
+    pipeline = direction === "horizontal" ? pipeline.flop() : pipeline.flip();
+    const buffer = await pipeline.toBuffer();
+    const baseName = path.basename(inputPath, path.extname(inputPath));
+    const outputPath = path.join(outputDir, `${baseName}-flipped.${format === "jpeg" ? "jpg" : format}`);
+    await fs.writeFile(outputPath, buffer);
+    outputs.push(outputPath);
+  }
+  return outputs;
+}
+
+/** Strips EXIF/ICC/IPTC metadata by re-encoding without the `withMetadata()` call. */
+export async function removeImageMetadata({ inputPaths, outputDir }: ProcessorInput): Promise<string[]> {
+  const outputs: string[] = [];
+  for (const inputPath of inputPaths) {
+    const format = normalizeFormat(path.extname(inputPath).replace(".", ""));
+    const pipeline = sharp(inputPath); // sharp omits metadata by default unless withMetadata() is called
+    const buffer =
+      format === "jpeg" ? await pipeline.jpeg({ quality: 95 }).toBuffer() : format === "webp" ? await pipeline.webp({ quality: 95 }).toBuffer() : await pipeline.png().toBuffer();
+
+    const baseName = path.basename(inputPath, path.extname(inputPath));
+    const outputPath = path.join(outputDir, `${baseName}-clean.${format === "jpeg" ? "jpg" : format}`);
+    await fs.writeFile(outputPath, buffer);
+    outputs.push(outputPath);
+  }
+  return outputs;
+}
+
+interface DpiOptions {
+  dpi?: number;
+}
+
+export async function changeImageDpi({ inputPaths, outputDir, options }: ProcessorInput): Promise<string[]> {
+  const opts = options as DpiOptions;
+  const dpi = opts.dpi ?? 300;
+
+  const outputs: string[] = [];
+  for (const inputPath of inputPaths) {
+    const format = normalizeFormat(path.extname(inputPath).replace(".", ""));
+    const pipeline = sharp(inputPath).withMetadata({ density: dpi });
+    const buffer = format === "jpeg" ? await pipeline.jpeg({ quality: 95 }).toBuffer() : format === "webp" ? await pipeline.webp({ quality: 95 }).toBuffer() : await pipeline.png().toBuffer();
+
+    const baseName = path.basename(inputPath, path.extname(inputPath));
+    const outputPath = path.join(outputDir, `${baseName}-${dpi}dpi.${format === "jpeg" ? "jpg" : format}`);
+    await fs.writeFile(outputPath, buffer);
+    outputs.push(outputPath);
+  }
+  return outputs;
+}

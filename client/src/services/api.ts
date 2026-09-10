@@ -33,6 +33,20 @@ export interface JobResponse {
   error?: string;
 }
 
+export interface FormFieldInfo {
+  name: string;
+  type: "text" | "checkbox" | "dropdown" | "radio" | "unsupported";
+  options?: string[];
+}
+
+export async function inspectFillablePdf(file: File): Promise<FormFieldInfo[]> {
+  const formData = new FormData();
+  formData.append("files", file);
+  const res = await fetch(`${API_BASE}/tools/fill-pdf/inspect`, { method: "POST", body: formData });
+  const data = await handleResponse<{ fields: FormFieldInfo[] }>(res);
+  return data.fields;
+}
+
 export async function createJob(toolSlug: string, files: File[], options: Record<string, unknown> = {}): Promise<JobResponse> {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));

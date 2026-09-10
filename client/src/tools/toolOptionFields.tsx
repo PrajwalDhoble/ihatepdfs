@@ -73,48 +73,6 @@ export function CompressImageOptions({ options, setOptions }: CompressImageOptio
   );
 }
 
-export function ResizeImageOptions({ options, setOptions }: CompressImageOptionsProps) {
-  return (
-    <div style={{ display: "flex", gap: 12 }}>
-      <label style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>
-        Width (px)
-        <input
-          type="number"
-          min={1}
-          style={{ ...fieldStyle, display: "block", width: "100%", marginTop: 4 }}
-          value={(options.width as number) ?? ""}
-          onChange={(e) => setOptions({ ...options, width: e.target.value ? Number(e.target.value) : undefined })}
-        />
-      </label>
-      <label style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>
-        Height (px)
-        <input
-          type="number"
-          min={1}
-          style={{ ...fieldStyle, display: "block", width: "100%", marginTop: 4 }}
-          value={(options.height as number) ?? ""}
-          onChange={(e) => setOptions({ ...options, height: e.target.value ? Number(e.target.value) : undefined })}
-        />
-      </label>
-    </div>
-  );
-}
-
-export function SplitPdfOptions({ options, setOptions }: CompressImageOptionsProps) {
-  return (
-    <label style={{ fontSize: 13, fontWeight: 600 }}>
-      Page ranges (e.g. 1-3,5-7,10)
-      <input
-        type="text"
-        style={{ ...fieldStyle, display: "block", width: "100%", marginTop: 4 }}
-        value={(options.ranges as string) ?? ""}
-        onChange={(e) => setOptions({ ...options, ranges: e.target.value })}
-        placeholder="1-3,5-7"
-      />
-    </label>
-  );
-}
-
 export function CompressPdfOptions({ options, setOptions }: CompressImageOptionsProps) {
   return (
     <label style={{ fontSize: 13, fontWeight: 600 }}>

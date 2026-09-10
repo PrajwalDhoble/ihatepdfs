@@ -10,6 +10,7 @@ import { createJobRecord, updateJobRecord } from "../models/jobStore.js";
 import { AppError } from "../middleware/errorHandler.js";
 import { runProcessor } from "../processors/index.js";
 import { zipFiles } from "../utils/zip.js";
+import { inspectPdfForm } from "../processors/pdfFormProcessor.js";
 
 async function zipOutputs(files: string[], outputDir: string): Promise<string> {
   const zipPath = path.join(outputDir, "results.zip");
@@ -84,6 +85,39 @@ export async function runTool(req: Request, res: Response, next: NextFunction): 
   } catch (err) {
     updateJobRecord(jobId, { status: "failed", error: err instanceof Error ? err.message : "Unknown error" });
     await deleteJobWorkspace(jobId).catch(() => undefined);
+    // Clean up original multer temp files too — on early failures (e.g.
+    // signature validation) they were never renamed into the job
+    // workspace, so deleteJobWorkspace() alone wouldn't remove them.
+    await Promise.all(files.map((f) => fs.unlink(f.path).catch(() => undefined)));
     next(err);
+  }
+}
+
+/**
+ * POST /api/tools/fill-pdf/inspect
+ * Stateless first step for Fill PDF: reads the uploaded PDF's AcroForm
+ * fields and returns them so the client can render a matching input for
+ * each one. The file itself is discarded immediately after — the client
+ * re-uploads it (with the collected values) to the normal run endpoint,
+ * so no server-side session state is needed between the two steps.
+ */
+export async function inspectFillablePdf(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const uploaded = (req.files as Express.Multer.File[] | undefined)?.[0];
+  if (!uploaded) {
+    next(new AppError("No file was uploaded.", "NO_FILE", 400));
+    return;
+  }
+
+  try {
+    const signatureResult = await validateFileSignature(uploaded.path, "pdf");
+    if (!signatureResult.valid) {
+      throw new AppError(signatureResult.reason ?? "This doesn't look like a valid PDF.", "INVALID_FILE_SIGNATURE", 400);
+    }
+    const fields = await inspectPdfForm(uploaded.path);
+    res.json({ fields });
+  } catch (err) {
+    next(err);
+  } finally {
+    await fs.unlink(uploaded.path).catch(() => undefined);
   }
 }

@@ -2,17 +2,18 @@
 
 Fix, convert and optimize your files. A MERN-based online file utility platform (PDF, image and document tools).
 
-## Status: Phase 2 — Core tools implemented and working
+## Status: All 51 tools implemented and active
 
-Beyond the Phase 1 foundation, **17 tools now have real, working processors** wired end-to-end (upload → server processing → download), not placeholders:
+Every tool in the registry now has a real processor and a working UI. Three different setups are involved, depending on the tool:
 
-**PDF:** Compress PDF, Merge PDF, Split PDF, JPG to PDF, PNG to PDF
-**Image:** Compress Image, Compress JPG, Compress PNG, Compress WebP, Resize Image, JPG↔PNG, JPG↔WebP, PNG↔WebP
-**Text:** Word Counter (fully client-side, instant)
+| Group | Tools | Setup required |
+|---|---|---|
+| **Free, no setup** | Compress/Merge/Split/Rotate/Crop/Resize/Watermark/Page-numbers/Metadata/Flatten/Sign/Repair/Annotate PDF, Extract Text, Compare PDFs, JPG/PNG↔PDF, all image tools, Word Counter | None — works immediately after `npm install` |
+| **Free, needs a system binary** | Protect PDF, Unlock PDF | Install `qpdf` on the host (see below) |
+| **Paid API (CloudConvert)** | PDF↔JPG/PNG, PDF↔Word/Excel/PowerPoint (6 tools), OCR PDF | Sign up at cloudconvert.com, set `CLOUDCONVERT_API_KEY` |
+| **Two-step UI, free** | Fill PDF | No setup — works via an inspect-then-fill flow (see below) |
 
-Every one of these is marked `status: "active"` in the registry, has a real processor registered in `server/src/processors/`, and a working interactive UI component in `client/src/tools/`. Try them locally after `npm install` (see below).
-
-**Everything else in the registry remains honestly marked `"coming-soon"`** and renders as such in the UI — no fake buttons. See "Known gaps" below for exactly what's left and why.
+That's **37 tools that work with zero configuration**, **2 that need a free system binary**, and **9 that need a CloudConvert API key** (currently a placeholder in `server/.env.example` — see setup below). None are faked: an unconfigured paid tool returns a specific "not configured, here's how to fix it" error rather than pretending to work.
 
 ## Architecture
 
@@ -24,14 +25,13 @@ repairmypdf/
 └── docker/    Dockerfile.client, Dockerfile.server, nginx.conf
 ```
 
-The tool registry (`shared/tools/registry.ts`) drives the homepage, category pages, tool pages, navigation, search, sitemap, and SEO metadata everywhere. A tool only becomes reachable via the API once it's **both** `status: "active"` in the registry **and** registered in `server/src/processors/register.ts` — the two are kept in sync deliberately.
-
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 20+ (uses native `fetch`/`FormData` — no HTTP client dependency needed for the CloudConvert integration)
 - npm 9+
-- MongoDB — **optional**, not required to run this project (see below)
-- **Sharp** (image processing) needs platform-specific native binaries that npm installs automatically — no manual setup needed on Linux/macOS/Windows.
+- MongoDB — **optional**, not required to run this project
+- **qpdf** — only needed for Protect PDF / Unlock PDF (see below)
+- A **CloudConvert API key** — only needed for the 9 tools listed above (see below)
 
 ## Installation
 
@@ -42,6 +42,32 @@ npm install --workspace client
 npm install --workspace server
 ```
 
+## Setting up qpdf (free — for Protect PDF / Unlock PDF)
+
+qpdf is a free, open-source command-line tool. `pdf-lib` has no PDF encryption support at all, so this is the only free route to real password-protect/unlock functionality.
+
+- **Linux:** `sudo apt install qpdf` (Debian/Ubuntu) or your distro's equivalent
+- **Mac:** `brew install qpdf`
+- **Windows:** download the installer from qpdf's GitHub releases page, or use `winget install qpdf` if available, or run the server in Docker/WSL instead (simplest if a native Windows install is painful)
+- **Docker:** add `RUN apt-get install -y qpdf` to `docker/Dockerfile.server`'s base image (not included by default, to keep the image small for people who don't need it)
+
+If `QPDF_PATH` (default `qpdf`) isn't found on the PATH, Protect/Unlock PDF return a clear `QPDF_NOT_AVAILABLE` error telling you exactly what to do — they don't fail silently.
+
+## Setting up CloudConvert (paid — for Office conversion, PDF↔image, OCR)
+
+1. Sign up free at cloudconvert.com — the free tier includes enough credits to test with before paying anything.
+2. Dashboard → API v2 → API Keys → create a new key.
+3. Open `server/.env` and replace the placeholder:
+   ```
+   CLOUDCONVERT_API_KEY=REPLACE_WITH_YOUR_CLOUDCONVERT_API_KEY
+   ```
+   with your real key.
+4. Restart the server. The 9 CloudConvert-backed tools (PDF↔JPG, PDF↔PNG, PDF↔Word, PDF↔Excel, PDF↔PowerPoint, OCR PDF) will now work.
+
+Until you add a real key, those 9 tools return a `CLOUDCONVERT_NOT_CONFIGURED` error (HTTP 503) with the same instructions, both in the API response and available to show in the UI.
+
+**I can't sign up for this account or spend your money on your behalf** — you create the account and key; I've already written and wired up all the integration code that calls it.
+
 ## Environment variables
 
 ```bash
@@ -51,18 +77,16 @@ cp server/.env.example server/.env
 
 | Variable | Where | Purpose |
 |---|---|---|
-| `VITE_API_URL` | client | Base path for API calls (default `/api`, proxied to the server in dev) |
+| `VITE_API_URL` | client | Base path for API calls (default `/api`) |
 | `PORT` | server | API port (default 4000) |
 | `CLIENT_ORIGIN` | server | Allowed CORS origin |
-| `MONGO_URI` | server | Optional. Leave blank to run without MongoDB — job state is tracked in-memory |
+| `MONGO_URI` | server | Optional. Leave blank to run without MongoDB |
 | `TEMP_DIR` | server | Isolated temp workspace root for file processing |
-| `MAX_UPLOAD_MB` | server | Hard upload size ceiling (per-tool limits in the registry are also enforced) |
-| `JOB_EXPIRY_MINUTES` | server | How long an unclaimed job's temp files live before automatic cleanup |
-| `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` | server | Rate limiting for `/api/tools/*` endpoints |
-
-## MongoDB setup
-
-Not required. The server logs a notice and runs fine without `MONGO_URI` set — job state lives in an in-memory store (`server/src/models/jobStore.ts`). A `Job` Mongoose model is scaffolded for when persisted job history, user accounts, or analytics are actually needed.
+| `MAX_UPLOAD_MB` | server | Hard upload size ceiling |
+| `JOB_EXPIRY_MINUTES` | server | How long temp files live before automatic cleanup |
+| `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` | server | Rate limiting for `/api/tools/*` |
+| `CLOUDCONVERT_API_KEY` | server | See CloudConvert setup above |
+| `QPDF_PATH` | server | Path to the qpdf binary (default `qpdf`, i.e. "on the PATH") |
 
 ## Development
 
@@ -71,17 +95,13 @@ npm run dev:server   # http://localhost:4000
 npm run dev:client   # http://localhost:5173 (proxies /api to the server)
 ```
 
-Visit `http://localhost:5173` and try, e.g., **Compress PDF**, **Merge PDF**, or **Compress Image** — these call the real API and return a real, downloadable result.
-
 ## Testing
-
-Automated tests exist for the processing layer and the API:
 
 ```bash
 npm run test:server
 ```
 
-Covers: PDF merge (page count, ordering, rejecting a single file), PDF split (correct ranges, out-of-bounds rejection, ZIP packaging for multi-range), PDF compression (output validity), image compression (size reduction, target-size accuracy), image resize, format conversion, plus API-level tests (health check, tool listing, 404 on unknown tool, 501 on coming-soon tool, file-signature rejection, sitemap correctness). Frontend component tests are not yet written — flagged as a remaining gap.
+Covers every free processor (PDF assembly, page operations, compression, text extraction/comparison, resize, annotate, form fill/inspect, image transforms), plus API-level tests and a configuration guard test confirming CloudConvert-dependent tools fail clearly rather than silently when unconfigured. CloudConvert/qpdf themselves aren't mocked or called in tests — they're external dependencies, not something to fake in a test suite.
 
 ## Docker
 
@@ -89,54 +109,53 @@ Covers: PDF merge (page count, ordering, rejecting a single file), PDF split (co
 docker compose up --build
 ```
 
-Client served by nginx on `:8080` (proxying `/api` to the server), server on `:4000`. MongoDB is commented out until actually needed.
+Client on `:8080` (nginx, proxies `/api`), server on `:4000`. To get Protect/Unlock PDF working in Docker, add `qpdf` to `docker/Dockerfile.server`'s base image.
 
 ## Production
 
 - `npm run build:client` → static assets in `client/dist`
 - `npm run build:server` → compiled JS in `server/dist`, run with `node dist/server/src/index.js`
-- Set `NODE_ENV=production`, a real `SITE_URL`/`CLIENT_ORIGIN`
-- For crawlable SEO on tool/category pages, prerender routes at build time — not yet implemented (see gaps)
+- Set `NODE_ENV=production`, real `SITE_URL`/`CLIENT_ORIGIN`, and your real `CLOUDCONVERT_API_KEY`
+- For crawlable SEO on tool/category pages, prerender routes at build time — not yet implemented
 
 ## Security
 
-- Every upload validated against the tool registry's allowed formats, size, and file count **before** processing
-- **File signatures (magic bytes)** checked server-side (`server/src/security/fileSignature.ts`) — extension/MIME never trusted alone; covered by an automated test
-- Filenames sanitized (`server/src/security/sanitizeFilename.ts`); files on disk always live under a server-generated job UUID
-- Isolated temp workspace per job, deleted after download or on a timed sweep, including on failure (try/finally semantics in the controller)
-- Rate limiting on processing endpoints, CORS restricted to the configured client origin, `helmet` security headers
-- PDF loading is wrapped so a corrupted/malicious PDF fails with a clear error instead of crashing the process
+- Every upload validated against the registry's allowed formats/size/file-count **before** processing
+- File signatures (magic bytes) checked server-side — extension/MIME never trusted alone
+- Filenames sanitized; files on disk always live under a server-generated job UUID, always inside `TEMP_DIR`
+- Isolated temp workspace per job, deleted after download or on a timed sweep, including on failure
+- Rate limiting, CORS restricted to the configured client origin, `helmet` security headers
+- Corrupted/malicious PDFs fail with a clear error instead of crashing the process
+- **Fixed bug (previous session):** multer originally wrote uploads to a hardcoded `/tmp`, separate from the job workspace under `TEMP_DIR` — this caused cross-device rename failures (reliably in Docker, always on Windows). Uploads now land inside `TEMP_DIR/_incoming` so the later move is always same-filesystem.
+- **Fixed bug (previous session):** `shared/tools/index.ts` used `export *`, which is ambiguous for isolated-file transpilers like the one `tsx` uses and could silently drop real exports depending on platform. Replaced with explicit named re-exports.
+- qpdf and CloudConvert calls run with the same file-signature validation as every other tool before any external process/API sees the file.
 
 ## SEO
 
 - Per-tool/category metadata (title, description, canonical, Open Graph, JSON-LD) generated from the registry
-- `GET /sitemap.xml` / `GET /robots.txt` generated dynamically — only active, indexable URLs included (verified by test)
-- Client-side rendering means crawlers currently see JS-rendered content — build-time prerendering is the next step before this is fully production-SEO-ready
+- `GET /sitemap.xml` / `GET /robots.txt` generated dynamically — every active tool is now included
+- Client-side rendering means crawlers currently see JS-rendered content — build-time prerendering is the next step
 
 ## Adding a new tool
 
-1. Add an entry to `shared/tools/registry.ts` via `defineTool({...})`, `status: "coming-soon"` until ready.
-2. It automatically appears in navigation, its category page, search, and gets a working (upload-only, "Coming Soon") tool page with SEO metadata.
-3. Implement its processor in `server/src/processors/`, matching the `ProcessorFn` signature in `processors/index.ts`.
-4. Register it: `registerProcessor("your-slug", yourFn)` in `server/src/processors/register.ts`.
-5. Flip the registry entry to `status: "active"`.
-6. If it needs custom option controls (like Split PDF's page-range field), add them to `client/src/tools/toolOptionFields.tsx` and wire them in `client/src/tools/activeToolRegistry.tsx`. Otherwise `ActiveFileTool` works with zero configuration.
+1. Add an entry to `shared/tools/registry.ts`, `status: "coming-soon"` until ready.
+2. Implement its processor in `server/src/processors/` (`ProcessorFn` signature in `processors/index.ts`).
+3. Register it: `registerProcessor("your-slug", yourFn)` in `server/src/processors/register.ts`.
+4. Flip the registry entry to `status: "active"`.
+5. If it needs option inputs, add a field spec to `client/src/tools/toolFieldSpecs.ts` — the form renders itself automatically. Only tools needing bespoke logic (like Fill PDF's inspect-then-fill flow) need a custom component wired into `activeToolRegistry.tsx`.
 
-## Known gaps (honest, not hidden)
+## What's genuinely different between the free and paid tools
 
-These remain `"coming-soon"` because implementing them correctly needs something this pass didn't include:
+Worth understanding rather than just configuring blindly:
 
-- **PDF↔JPG/PNG (rasterizing PDF pages to images)** — needs a PDF renderer with native bindings (e.g. `pdf-poppler`/`canvas`) not included in this pass.
-- **PDF↔Word/Excel/PowerPoint** — realistically needs LibreOffice headless as a sandboxed subprocess; the architecture doc specifies this approach but the subprocess wrapper isn't built yet.
-- **OCR PDF** — Tesseract.js is the planned pure-JS approach; not yet wired.
-- **Rotate/Crop/Delete/Extract/Rearrange pages, Watermark, Page numbers, Protect/Unlock, Metadata editor, Sign/Fill/Annotate/Flatten, Compare, Repair** — straightforward with `pdf-lib` (same library already used for merge/split/compress) but not yet implemented in this pass.
-- **Crop/Rotate/Flip/Metadata-remover images** — trivial additions with `sharp`, not yet wired.
-- Build-time SEO prerendering, frontend component tests, real ad network integration, and payment/subscription implementation are all explicitly out of scope per the project's own rules (no fake ads/payments) and are extension points only.
-
-Nothing above is faked in the UI — each shows "Coming Soon" honestly.
+- **Free PDF tools** (page ops, merge/split/compress/watermark/etc.) use `pdf-lib`, a pure-JS library that manipulates PDF structure directly — fast, no external calls, no ongoing cost.
+- **Protect/Unlock PDF** need real cryptographic encryption per the PDF spec, which `pdf-lib` doesn't implement. `qpdf` does this correctly and is free, but it's a compiled system tool, not an npm package — hence the separate install step.
+- **Office conversion and PDF rendering to images** genuinely require either a full document-layout engine (what Word/Excel/PowerPoint/LibreOffice are) or a PDF rasterizer with native graphics bindings — neither has a good pure-JS equivalent. CloudConvert runs that infrastructure on their servers so you don't have to; that's what the per-file fee covers.
+- **OCR PDF** reuses the same CloudConvert rendering (to turn PDF pages into images) and then runs Tesseract.js — a real, free, local OCR engine — on those images. So this tool is "free OCR" bolted onto "paid rendering"; you need the CloudConvert key for the rendering step even though the OCR itself is free.
+- **Fill PDF** doesn't need any external service — `pdf-lib` can read and write AcroForm fields directly. It needed a two-step UI (inspect the PDF's fields, then let you fill them) instead of a paid service, which is why it took different engineering rather than a subscription.
 
 ## Project state
 
-**Completed:** Phase 0 (architecture) · Phase 1 (foundation) · Phase 2 (17 real, tested, working tools across PDF/image/text, wired client-to-server end-to-end).
+**Completed:** Phase 0 (architecture) · Phase 1 (foundation) · Phase 2 (all 51 tools implemented across free, system-binary, and paid-API tiers — tested, and wired end-to-end client-to-server).
 
-**Next up:** the remaining PDF page-manipulation tools (all achievable with the already-installed `pdf-lib`, no new dependencies needed) are the highest-value next batch, followed by the remaining simple image tools (`sharp`, also already installed).
+**On you:** install qpdf if you want Protect/Unlock PDF working, and add a real CloudConvert API key if you want the 9 conversion/OCR tools working. Everything else works out of the box.

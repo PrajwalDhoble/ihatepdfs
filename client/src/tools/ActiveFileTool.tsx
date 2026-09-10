@@ -12,11 +12,19 @@ interface ActiveFileToolProps {
   defaultOptions?: Record<string, unknown>;
   /** Optional client-side check before submitting, e.g. "need at least 2 files". */
   validateBeforeSubmit?: (fileCount: number) => string | null;
+  /** Optional transform applied to options right before they're sent to the API (e.g. string -> number coercion). */
+  transformOptions?: (options: Record<string, unknown>) => Record<string, unknown>;
 }
 
 type RunState = "idle" | "processing" | "done" | "error";
 
-export default function ActiveFileTool({ tool, renderOptions, defaultOptions, validateBeforeSubmit }: ActiveFileToolProps) {
+export default function ActiveFileTool({
+  tool,
+  renderOptions,
+  defaultOptions,
+  validateBeforeSubmit,
+  transformOptions,
+}: ActiveFileToolProps) {
   const { files, addFiles, removeFile, clearFiles, hasValidFiles, globalError } = useFileUpload({
     acceptFormats: tool.inputFormats,
     maxFileSizeMB: tool.limits.maxFileSizeMB,
@@ -62,7 +70,8 @@ export default function ActiveFileTool({ tool, renderOptions, defaultOptions, va
 
     setRunState("processing");
     try {
-      const created = await createJob(tool.slug, validFiles, options);
+      const finalOptions = transformOptions ? transformOptions(options) : options;
+      const created = await createJob(tool.slug, validFiles, finalOptions);
       setJobId(created.jobId);
 
       const finalStatus = created.status === "done" || created.status === "failed" ? created : await pollUntilDone(created.jobId);

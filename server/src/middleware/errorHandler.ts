@@ -31,10 +31,21 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   }
 
   console.error("[unhandled error]", err);
+
+  // Surface the real underlying message instead of a static generic string.
+  // We were hiding this even in development, which made every distinct
+  // failure look identical to the person using the app. The message text
+  // (not the stack trace) is safe to show — it's diagnostic information,
+  // not a secret — and ends the "please paste your server log" loop for
+  // anything that reaches this fallback.
+  const underlyingMessage = err instanceof Error && err.message ? err.message : null;
+
   res.status(500).json({
     error: {
       code: "PROCESSING_FAILED",
-      message: "Processing failed. Please try again.",
+      message: underlyingMessage
+        ? `Processing failed: ${underlyingMessage}`
+        : "Processing failed. Please try again.",
     },
   });
 }
