@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  client:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.client
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.server
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - CLIENT_ORIGIN=http://localhost:8080
+      - TEMP_DIR=/tmp/repairmypdf
+      # - MONGO_URI=mongodb://mongo:27017/repairmypdf   # uncomment once Mongo is actually needed
+    volumes:
+      - repairmypdf-temp:/tmp/repairmypdf
+
+  # mongo:
+  #   image: mongo:7
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo-data:/data/db
+
+volumes:
+  repairmypdf-temp:
+  # mongo-data:
