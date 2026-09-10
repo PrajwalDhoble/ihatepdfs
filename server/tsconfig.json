@@ -15,6 +15,7 @@
     "noUnusedParameters": false,
     "baseUrl": "..",
     "paths": {
+      "@shared/tools": ["shared/tools/index.ts"],
       "@shared/*": ["shared/*"]
     }
   },

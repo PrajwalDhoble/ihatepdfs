@@ -71,8 +71,7 @@ async function apiRequest<T>(endpoint: string, init?: RequestInit): Promise<T> {
 
   let json: { data?: T };
   try {
-    json = await res.json();
-  } catch (err) {
+json = (await res.json()) as { data?: T };  } catch (err) {
     throw new AppError(
       `The conversion service returned a response that wasn't valid JSON. (${err instanceof Error ? err.message : "parse error"})`,
       "CLOUDCONVERT_BAD_RESPONSE",
