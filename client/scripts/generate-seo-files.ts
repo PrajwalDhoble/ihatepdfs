@@ -15,7 +15,7 @@ import { getAllTools, CATEGORIES } from "../../shared/tools/index.js";
  * server serves both, but this static version is what should actually be
  * indexed for a split frontend/backend deployment.
  */
-
+ 
 const SITE_URL = process.env.VITE_SITE_URL ?? "https://www.ihatepdf.net";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
