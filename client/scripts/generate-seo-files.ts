@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getAllTools, CATEGORIES } from "../../shared/tools/index.js";
+import { getAllTools, CATEGORIES } from "../../shared/tools/index.ts";
 
 /**
  * Generates sitemap.xml and robots.txt as STATIC files in client/public/
