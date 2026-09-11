@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { getAllTools, CATEGORIES } from "@shared/tools";
-
+import { getAllTools, CATEGORIES } from "../../../shared/tools/index.js";
 const router = Router();
 const SITE_URL = process.env.SITE_URL ?? "https://www.repairmypdf.com";
 

@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { getAllTools } from "@shared/tools";
-import { upload } from "../middleware/upload.js";
+import { getAllTools } from "../../../shared/tools/index.js";import { upload } from "../middleware/upload.js";
 import { validateToolRequest } from "../middleware/validate.js";
 import { toolsRateLimiter } from "../middleware/rateLimiter.js";
 import { runTool, inspectFillablePdf } from "../controllers/toolsController.js";
