@@ -19,7 +19,11 @@ import {
   stampPdfClient,
   repairPdfClient,
   annotatePdfClient,
+  addHeaderFooterClient,
+  redactPdfClient,
 } from "@/lib/clientPdf";
+import TextToPdfTool from "./TextToPdfTool";
+import WorkflowBuilderTool from "./WorkflowBuilderTool";
 
 /**
  * Every tool listed here processes the file entirely in the browser via
@@ -45,6 +49,10 @@ const CLIENT_PDF_SLUGS = new Set([
   "sign-pdf",
   "repair-pdf",
   "annotate-pdf",
+  "add-header-footer",
+  "redact-pdf",
+  "text-to-pdf",
+  "pdf-workflow",
 ]);
 
 export function isClientPdfTool(slug: string): boolean {
@@ -255,6 +263,49 @@ export function renderClientPdfTool(tool: Tool): ReactNode {
           ]}
         />
       );
+
+    case "add-header-footer":
+      return (
+        <ClientPdfTool
+          tool={tool}
+          renderOptions={(o, s) => <DynamicOptionsForm fields={TOOL_FIELD_SPECS["add-header-footer"]} options={o} setOptions={s} />}
+          run={async (files, options) => [
+            {
+              blob: await addHeaderFooterClient(files[0], {
+                headerText: options.headerText as string | undefined,
+                footerText: options.footerText as string | undefined,
+              }),
+              filename: nameFor(files[0], "header-footer"),
+            },
+          ]}
+        />
+      );
+
+    case "redact-pdf":
+      return (
+        <ClientPdfTool
+          tool={tool}
+          renderOptions={(o, s) => <DynamicOptionsForm fields={TOOL_FIELD_SPECS["redact-pdf"]} options={o} setOptions={s} />}
+          run={async (files, options) => [
+            {
+              blob: await redactPdfClient(files[0], {
+                page: options.page as number | undefined,
+                x: options.x as number | undefined,
+                y: options.y as number | undefined,
+                width: options.width as number | undefined,
+                height: options.height as number | undefined,
+              }),
+              filename: nameFor(files[0], "redacted"),
+            },
+          ]}
+        />
+      );
+
+    case "text-to-pdf":
+      return <TextToPdfTool tool={tool} />;
+
+    case "pdf-workflow":
+      return <WorkflowBuilderTool tool={tool} />;
 
     default:
       return null;

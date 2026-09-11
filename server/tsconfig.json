@@ -4,7 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2022"],
-    "outDir": "../dist",
+    "outDir": "dist",
     "rootDir": "..",
     "strict": true,
     "esModuleInterop": true,
@@ -13,10 +13,9 @@
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "baseUrl": "..",
+    "baseUrl": ".",
     "paths": {
-      "@shared/tools": ["shared/tools/index.ts"],
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["../shared/*"]
     }
   },
   "include": ["src", "../shared"]

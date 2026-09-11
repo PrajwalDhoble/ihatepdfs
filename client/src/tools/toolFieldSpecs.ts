@@ -21,6 +21,21 @@ export const TOOL_FIELD_SPECS: Record<string, OptionField[]> = {
     { key: "x", type: "number", label: "X position in points from left (optional, default 20)", min: 0 },
     { key: "y", type: "number", label: "Y position in points from bottom (optional, default near top)", min: 0 },
   ],
+  "add-header-footer": [
+    { key: "headerText", type: "text", label: "Header text (optional)", placeholder: "Company Confidential" },
+    { key: "footerText", type: "text", label: "Footer text (optional)", placeholder: "Page footer text" },
+  ],
+  "redact-pdf": [
+    { key: "page", type: "number", label: "Page number", min: 1 },
+    { key: "x", type: "number", label: "X position in points from left", min: 0 },
+    { key: "y", type: "number", label: "Y position in points from bottom", min: 0 },
+    { key: "width", type: "number", label: "Width in points", min: 1 },
+    { key: "height", type: "number", label: "Height in points", min: 1 },
+  ],
+  "text-to-pdf": [
+    { key: "title", type: "text", label: "Document title (optional)" },
+    { key: "text", type: "textarea", label: "Text content", placeholder: "Type or paste your text here…", rows: 12 },
+  ],
   "resize-image": [
     { key: "width", type: "number", label: "Width (px)", min: 1 },
     { key: "height", type: "number", label: "Height (px)", min: 1 },

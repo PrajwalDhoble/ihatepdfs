@@ -38,10 +38,8 @@ function parsePageList(input: string, totalPages: number): number[] {
 }
 
 function toBlob(bytes: Uint8Array): Blob {
-const buffer = new ArrayBuffer(bytes.byteLength);
-new Uint8Array(buffer).set(bytes);
-
-return new Blob([buffer], { type: "application/pdf" });}
+  return new Blob([bytes], { type: "application/pdf" });
+}
 
 export async function mergePdfsClient(files: File[]): Promise<Blob> {
   if (files.length < 2) throw new ClientPdfError("Select at least two PDF files to merge.");
@@ -231,6 +229,35 @@ export async function stampPdfClient(
   return toBlob(await doc.save());
 }
 
+/** Places an uploaded signature image (e.g. a photo of a handwritten signature) onto the last page. */
+export async function stampPdfWithImageClient(
+  file: File,
+  signatureImage: File,
+  position: "bottom-right" | "bottom-left" | "bottom-center" = "bottom-right",
+  widthPt = 140
+): Promise<Blob> {
+  const doc = await loadPdfOrThrow(file);
+  const imgBytes = new Uint8Array(await signatureImage.arrayBuffer());
+  const isPng = signatureImage.type.includes("png");
+
+  let embedded;
+  try {
+    embedded = isPng ? await doc.embedPng(imgBytes) : await doc.embedJpg(imgBytes);
+  } catch {
+    throw new ClientPdfError("Couldn't read the signature image — use a JPG or PNG.");
+  }
+
+  const pages = doc.getPages();
+  const page = pages[pages.length - 1];
+  const { width } = page.getSize();
+  const scale = widthPt / embedded.width;
+  const h = embedded.height * scale;
+  const margin = 40;
+  const x = position === "bottom-left" ? margin : position === "bottom-center" ? width / 2 - widthPt / 2 : width - margin - widthPt;
+  page.drawImage(embedded, { x, y: margin, width: widthPt, height: h });
+  return toBlob(await doc.save());
+}
+
 export async function repairPdfClient(file: File): Promise<Blob> {
   try {
     const bytes = await file.arrayBuffer();
@@ -241,7 +268,125 @@ export async function repairPdfClient(file: File): Promise<Blob> {
   }
 }
 
-export async function annotatePdfClient(
+interface HeaderFooterOptions {
+  headerText?: string;
+  footerText?: string;
+}
+
+export async function addHeaderFooterClient(file: File, opts: HeaderFooterOptions): Promise<Blob> {
+  if (!opts.headerText?.trim() && !opts.footerText?.trim()) {
+    throw new ClientPdfError("Enter header and/or footer text.");
+  }
+  const doc = await loadPdfOrThrow(file);
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const fontSize = 9;
+  const margin = 24;
+
+  doc.getPages().forEach((page) => {
+    const { width, height } = page.getSize();
+    if (opts.headerText?.trim()) {
+      const tw = font.widthOfTextAtSize(opts.headerText, fontSize);
+      page.drawText(opts.headerText, { x: width / 2 - tw / 2, y: height - margin, size: fontSize, font, color: rgb(0.4, 0.4, 0.4) });
+    }
+    if (opts.footerText?.trim()) {
+      const tw = font.widthOfTextAtSize(opts.footerText, fontSize);
+      page.drawText(opts.footerText, { x: width / 2 - tw / 2, y: margin / 2, size: fontSize, font, color: rgb(0.4, 0.4, 0.4) });
+    }
+  });
+
+  return toBlob(await doc.save());
+}
+
+interface RedactOptions {
+  page?: number; // 1-indexed
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
+
+/**
+ * Draws an opaque black box over the specified region on the specified
+ * page. IMPORTANT, and stated plainly in the tool's own description: this
+ * is a VISUAL redaction only — it covers the content so it's no longer
+ * visible or copyable through normal viewing, but pdf-lib has no way to
+ * search and strip the underlying text objects in that region, so the
+ * original text may still technically exist in the file's data. For
+ * forensic-grade redaction (removing the data entirely), flattening the
+ * result and then re-saving via "Compress PDF" reduces but doesn't
+ * guarantee full removal — genuinely sensitive redaction should still use
+ * a tool built specifically for that, not implied to be equivalent here.
+ */
+export async function redactPdfClient(file: File, opts: RedactOptions): Promise<Blob> {
+  if (!opts.width || !opts.height) throw new ClientPdfError("Specify the width and height of the area to redact.");
+  const doc = await loadPdfOrThrow(file);
+  const pageIndex = (opts.page ?? 1) - 1;
+  const pages = doc.getPages();
+  if (pageIndex < 0 || pageIndex >= pages.length) {
+    throw new ClientPdfError(`Page ${opts.page} doesn't exist in this ${pages.length}-page document.`);
+  }
+  const page = pages[pageIndex];
+  page.drawRectangle({
+    x: opts.x ?? 0,
+    y: opts.y ?? 0,
+    width: opts.width,
+    height: opts.height,
+    color: rgb(0, 0, 0),
+  });
+  return toBlob(await doc.save());
+}
+
+interface TextToPdfOptions {
+  text: string;
+  title?: string;
+}
+
+/** Creates a new PDF from plain text, paginating and wrapping automatically. */
+export async function textToPdfClient(opts: TextToPdfOptions): Promise<Blob> {
+  if (!opts.text.trim()) throw new ClientPdfError("Enter some text to convert into a PDF.");
+  const doc = await PDFDocument.create();
+  if (opts.title) doc.setTitle(opts.title);
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const fontSize = 12;
+  const lineHeight = fontSize * 1.4;
+  const pageWidth = 612; // US Letter
+  const pageHeight = 792;
+  const margin = 56;
+  const maxWidth = pageWidth - margin * 2;
+
+  function wrapLine(line: string): string[] {
+    const words = line.split(" ");
+    const wrapped: string[] = [];
+    let current = "";
+    for (const word of words) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (font.widthOfTextAtSize(candidate, fontSize) > maxWidth && current) {
+        wrapped.push(current);
+        current = word;
+      } else {
+        current = candidate;
+      }
+    }
+    if (current) wrapped.push(current);
+    return wrapped.length > 0 ? wrapped : [""];
+  }
+
+  const allLines = opts.text.split("\n").flatMap(wrapLine);
+
+  let page = doc.addPage([pageWidth, pageHeight]);
+  let y = pageHeight - margin;
+
+  for (const line of allLines) {
+    if (y < margin) {
+      page = doc.addPage([pageWidth, pageHeight]);
+      y = pageHeight - margin;
+    }
+    page.drawText(line, { x: margin, y, size: fontSize, font, color: rgb(0.1, 0.1, 0.1) });
+    y -= lineHeight;
+  }
+
+  return toBlob(await doc.save());
+}
   file: File,
   opts: { text: string; page?: number; x?: number; y?: number }
 ): Promise<Blob> {

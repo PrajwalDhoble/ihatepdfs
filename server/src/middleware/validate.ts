@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { getToolBySlug } from "../../../shared/tools/registry.js";import { AppError } from "./errorHandler.js";
+import { getToolBySlug } from "@shared/tools";
+import { AppError } from "./errorHandler.js";
 import { getExtension } from "../security/sanitizeFilename.js";
 
 /**

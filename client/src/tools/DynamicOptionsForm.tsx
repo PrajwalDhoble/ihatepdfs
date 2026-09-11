@@ -1,5 +1,6 @@
 export type OptionField =
   | { key: string; type: "text"; label: string; placeholder?: string }
+  | { key: string; type: "textarea"; label: string; placeholder?: string; rows?: number }
   | { key: string; type: "password"; label: string; placeholder?: string }
   | { key: string; type: "number"; label: string; min?: number; max?: number; placeholder?: string }
   | { key: string; type: "select"; label: string; choices: { value: string; label: string }[] }
@@ -36,6 +37,15 @@ export default function DynamicOptionsForm({ fields, options, setOptions }: Dyna
               type="text"
               style={fieldStyle}
               placeholder={field.placeholder}
+              value={(options[field.key] as string) ?? ""}
+              onChange={(e) => update(field.key, e.target.value)}
+            />
+          )}
+          {field.type === "textarea" && (
+            <textarea
+              style={{ ...fieldStyle, minHeight: (field.rows ?? 8) * 20, fontFamily: "inherit", resize: "vertical" }}
+              placeholder={field.placeholder}
+              rows={field.rows ?? 8}
               value={(options[field.key] as string) ?? ""}
               onChange={(e) => update(field.key, e.target.value)}
             />

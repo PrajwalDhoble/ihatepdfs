@@ -149,6 +149,10 @@ export const TOOLS: Tool[] = [
   defineTool({ name: "Fill PDF", slug: "fill-pdf", category: "pdf", status: "active", description: "Fill out a PDF form's fields online.", inputFormats: ["pdf"], outputFormats: ["pdf"], relatedTools: ["sign-pdf"] }),
   defineTool({ name: "Annotate PDF", slug: "annotate-pdf", category: "pdf", status: "active", description: "Add a visible note to a specific page and position in a PDF.", inputFormats: ["pdf"], outputFormats: ["pdf"], relatedTools: ["fill-pdf"] }),
   defineTool({ name: "Flatten PDF", slug: "flatten-pdf", category: "pdf", status: "active", description: "Flatten PDF form fields into the page so they're no longer editable.", inputFormats: ["pdf"], outputFormats: ["pdf"], relatedTools: ["fill-pdf"] }),
+  defineTool({ name: "Add Header and Footer", slug: "add-header-footer", category: "pdf", status: "active", description: "Add repeating header and footer text to every page of a PDF.", inputFormats: ["pdf"], outputFormats: ["pdf"], relatedTools: ["add-page-numbers", "add-watermark"] }),
+  defineTool({ name: "Redact PDF", slug: "redact-pdf", category: "security", status: "active", description: "Cover a region of a PDF page with a solid black box to visually redact it.", inputFormats: ["pdf"], outputFormats: ["pdf"], relatedTools: ["protect-pdf", "flatten-pdf"] }),
+  defineTool({ name: "Text to PDF", slug: "text-to-pdf", category: "converter", status: "active", description: "Create a new PDF from plain text, with automatic pagination and line wrapping.", inputFormats: [], outputFormats: ["pdf"], executionMode: "client", maxFiles: 0, relatedTools: ["extract-pdf-text", "word-counter"] }),
+  defineTool({ name: "PDF Workflow Builder", slug: "pdf-workflow", category: "pdf", status: "active", description: "Chain multiple PDF edits — rotate, crop, watermark, header/footer, page numbers, redact and more — and run them all in one pass.", inputFormats: ["pdf"], outputFormats: ["pdf"], executionMode: "client", relatedTools: ["merge-pdf", "compress-pdf"] }),
 
   // ---------------- IMAGE TOOLS ----------------
   defineTool({

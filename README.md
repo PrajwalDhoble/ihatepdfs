@@ -2,7 +2,7 @@
 
 Fix, convert and optimize your files. A MERN-based online file utility platform (PDF, image and document tools).
 
-## Status: All 51 tools implemented and active
+## Status: All 55 tools implemented and active
 
 Every tool in the registry now has a real processor and a working UI. Three different setups are involved, depending on the tool:
 
@@ -122,6 +122,46 @@ Client on `:8080` (nginx, proxies `/api`), server on `:4000`. To get Protect/Unl
 - **Health check**: `GET /api/health` — point your hosting platform's health check / uptime monitor at this
 - For crawlable SEO on tool/category pages, prerender routes at build time — not yet implemented (see below)
 
+## Deploying to production (read this if you're seeing NOT_FOUND or every tool failing)
+
+**The frontend and backend are two separate deployments.** This app is a static React SPA plus a persistent Node/Express API — they need to be hosted differently, and deploying only one of them causes exactly these symptoms:
+
+| Symptom | Cause |
+|---|---|
+| `NOT_FOUND` when refreshing a page like `/pdf-to-png` | The static host doesn't know to serve `index.html` for every route (needed for client-side routing) |
+| Every tool says "Something went wrong" / a generic failure | The frontend is deployed but has no reachable backend — `VITE_API_URL` is wrong, unset, or the backend isn't deployed at all |
+| No working `sitemap.xml`/`robots.txt` | These used to be dynamic server routes; if the backend isn't reachable at the frontend's domain, they don't exist there |
+
+### Frontend (static — Vercel, Netlify, Cloudflare Pages, S3+CloudFront, etc.)
+
+1. Set the project's root directory to `client/` (if deploying from this monorepo).
+2. Build command: `npm run build` — this automatically runs `prebuild` first, which regenerates `sitemap.xml` and `robots.txt` as static files in `client/public/`. No server needed for these anymore.
+3. Output directory: `client/dist`.
+4. **Environment variables (set at build time):**
+   - `VITE_API_URL` — the full URL of your deployed backend's API, e.g. `https://api.repairmypdf.com/api` or `https://repairmypdf-server.onrender.com/api`. **This is almost certainly what's missing right now.** Without it, it defaults to `/api` (a relative path), which only works when frontend and backend share a domain (e.g. behind the same nginx, as in `docker-compose.yml`). On a split deployment it must be an absolute URL pointing at the real backend.
+   - `VITE_SITE_URL` — your real live domain, e.g. `https://www.repairmypdf.com`, used for the sitemap, canonical tags, and Open Graph metadata.
+5. **SPA routing:** `client/vercel.json` is included with the rewrite Vercel needs (falls back to `index.html` for any path that isn't a real static file like `sitemap.xml`). Netlify needs an equivalent `_redirects` file with `/* /index.html 200` if you deploy there instead.
+
+### Backend (persistent Node process — Render, Railway, Fly.io, a VPS, or Docker)
+
+**Don't deploy the Express server to Vercel/Netlify as serverless functions.** It needs:
+- A persistent filesystem for temp file processing (`TEMP_DIR`)
+- An in-memory job store that assumes one long-running process
+- To run `qpdf` as a subprocess (Protect/Unlock PDF)
+- Potentially long-running requests (CloudConvert jobs, OCR) that can exceed typical serverless function timeouts
+
+Render, Railway, or Fly.io all support this as a standard "web service" deploy (`npm install && npm run build && npm start` from `server/`, or use `docker/Dockerfile.server` directly). A plain VPS with `pm2` or a systemd unit works too.
+
+**Environment variables on the backend:**
+- `CLIENT_ORIGIN` — your frontend's real domain (e.g. `https://www.repairmypdf.com`), required for CORS to allow the frontend to call it
+- `SITE_URL` — same real domain, used by the (now secondary/optional) dynamic sitemap routes
+- `CLOUDCONVERT_API_KEY`, `QPDF_PATH`, etc. as already documented above
+
+### Quick way to tell which half is broken
+
+- Visit `https://your-backend-url/api/health` directly — if that doesn't return `{"status":"ok",...}`, the backend isn't deployed or reachable, and no frontend change will fix anything.
+- Visit `https://your-frontend-domain/sitemap.xml` — after these fixes, this is a static file and should load instantly regardless of backend status. Submit this exact URL to Google Search Console.
+
 ## Security
 
 - Every upload validated against the registry's allowed formats/size/file-count **before** processing
@@ -146,10 +186,15 @@ Client on `:8080` (nginx, proxies `/api`), server on `:4000`. To get Protect/Unl
 
 Added after a competitive look at other free PDF tool sites on the market:
 
-- **Client-side processing for 15 PDF tools** — Merge, Split, Rotate, Delete/Extract/Rearrange Pages, Crop, Resize, Watermark, Page Numbers, Edit Metadata, Flatten, Sign (stamp), Repair, and Annotate all run **entirely in your browser** via `pdf-lib` (`client/src/lib/clientPdf.ts`) — no upload, no server round-trip, no dependency on the backend at all for these. The file never leaves your device. Each of these tool pages shows a "Processed locally — never uploaded" badge, so it's provably true, not just a claim.
+- **Client-side processing for 19 PDF tools** — Merge, Split, Rotate, Delete/Extract/Rearrange Pages, Crop, Resize, Watermark, Header/Footer, Page Numbers, Edit Metadata, Flatten, Sign (stamp), Repair, Annotate, Redact, and the **PDF Workflow Builder** all run **entirely in your browser** via `pdf-lib` (`client/src/lib/clientPdf.ts`) — no upload, no server round-trip. Each shows a "Processed locally — never uploaded" badge.
+- **PDF Workflow Builder** — chain multiple edits (rotate, crop, watermark, header/footer, redact, and more) into one sequential run against a single upload, entirely client-side.
+- **Text to PDF** — paste plain text, get a paginated PDF back, no upload needed since there's no input file to begin with.
+- **Redact PDF** — covers a specified region with a solid black box. Documented honestly in its own description and code comments: this is a *visual* redaction, not guaranteed removal of the underlying text data — genuinely sensitive redaction needs a tool built specifically for that guarantee.
 - **Dark mode** — toggle in the navbar, persisted, respects system preference by default (`client/src/hooks/useTheme.ts`).
 - **Recently used tools** — shown on the homepage, tracked via `localStorage`, no account needed (`client/src/hooks/useRecentTools.ts`).
-- **Basic offline support (PWA)** — `client/public/manifest.json` + `client/public/service-worker.js` cache the app shell and any visited page, so a repeat visit works without a network connection for pages you've already loaded. Intentionally simple (network-first with a cache fallback) rather than a full offline-first rebuild.
+- **Basic offline support (PWA)** — `client/public/manifest.json` + `client/public/service-worker.js` cache the app shell and any visited page, so a repeat visit works without a network connection for pages you've already loaded.
+
+Deliberately not built: a collaborative whiteboard (unrelated to file repair/conversion) and AI chat/summarization features some competitors have (those need a separate paid LLM API — happy to add if you want, same pattern as the CloudConvert integration, but not built speculatively).
 
 ## Adding a new tool
 1. Add an entry to `shared/tools/registry.ts`, `status: "coming-soon"` until ready.

@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "prebuild": "tsx scripts/generate-seo-files.ts",
+    "build": "npm run prebuild && tsc -b && vite build",
     "preview": "vite preview",
+    "generate:seo": "tsx scripts/generate-seo-files.ts",
     "lint": "eslint . --ext ts,tsx"
   },
   "dependencies": {
@@ -25,6 +27,7 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
     "typescript": "^5.5.3",
+    "tsx": "^4.16.2",
     "vite": "^5.3.4",
     "vite-tsconfig-paths": "^4.3.2"
   }
