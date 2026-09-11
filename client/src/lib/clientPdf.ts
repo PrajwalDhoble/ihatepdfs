@@ -38,8 +38,7 @@ function parsePageList(input: string, totalPages: number): number[] {
 }
 
 function toBlob(bytes: Uint8Array): Blob {
-  return new Blob([bytes], { type: "application/pdf" });
-}
+return new Blob([new Uint8Array(bytes)], { type: "application/pdf" });}
 
 export async function mergePdfsClient(files: File[]): Promise<Blob> {
   if (files.length < 2) throw new ClientPdfError("Select at least two PDF files to merge.");
@@ -387,23 +386,30 @@ export async function textToPdfClient(opts: TextToPdfOptions): Promise<Blob> {
 
   return toBlob(await doc.save());
 }
-  file: File,
+export async function annotatePdfClient(  file: File,
   opts: { text: string; page?: number; x?: number; y?: number }
 ): Promise<Blob> {
   if (!opts.text.trim()) throw new ClientPdfError("Enter the note text.");
+
   const doc = await loadPdfOrThrow(file);
   const pageIndex = (opts.page ?? 1) - 1;
   const pages = doc.getPages();
+
   if (pageIndex < 0 || pageIndex >= pages.length) {
-    throw new ClientPdfError(`Page ${opts.page} doesn't exist in this ${pages.length}-page document.`);
+    throw new ClientPdfError(
+      `Page ${opts.page} doesn't exist in this ${pages.length}-page document.`
+    );
   }
+
   const page = pages[pageIndex];
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const fontSize = 11;
   const x = opts.x ?? 20;
   const y = opts.y ?? page.getSize().height - 40;
   const padding = 6;
+
   const textWidth = font.widthOfTextAtSize(opts.text, fontSize);
+
   page.drawRectangle({
     x: x - padding,
     y: y - padding,
@@ -413,6 +419,14 @@ export async function textToPdfClient(opts: TextToPdfOptions): Promise<Blob> {
     borderColor: rgb(0.8, 0.7, 0.2),
     borderWidth: 1,
   });
-  page.drawText(opts.text, { x, y, size: fontSize, font, color: rgb(0.2, 0.2, 0.1) });
+
+  page.drawText(opts.text, {
+    x,
+    y,
+    size: fontSize,
+    font,
+    color: rgb(0.2, 0.2, 0.1),
+  });
+
   return toBlob(await doc.save());
 }

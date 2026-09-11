@@ -16,7 +16,7 @@ import { getAllTools, CATEGORIES } from "../../shared/tools/index.js";
  * indexed for a split frontend/backend deployment.
  */
 
-const SITE_URL = process.env.VITE_SITE_URL ?? "https://www.repairmypdf.com";
+const SITE_URL = process.env.VITE_SITE_URL ?? "https://www.ihatepdf.net";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(currentDir, "../public");
