@@ -17,6 +17,7 @@
   <url><loc>https://www.ihatepdf.net/security-tools</loc></url>
   <url><loc>https://www.ihatepdf.net/time-tools</loc></url>
   <url><loc>https://www.ihatepdf.net/developer-tools</loc></url>
+  <url><loc>https://www.ihatepdf.net/ai-tools</loc></url>
   <url><loc>https://www.ihatepdf.net/compress-pdf</loc></url>
   <url><loc>https://www.ihatepdf.net/merge-pdf</loc></url>
   <url><loc>https://www.ihatepdf.net/split-pdf</loc></url>
@@ -72,4 +73,29 @@
   <url><loc>https://www.ihatepdf.net/image-dimensions</loc></url>
   <url><loc>https://www.ihatepdf.net/image-format-detector</loc></url>
   <url><loc>https://www.ihatepdf.net/word-counter</loc></url>
+  <url><loc>https://www.ihatepdf.net/case-converter</loc></url>
+  <url><loc>https://www.ihatepdf.net/find-and-replace</loc></url>
+  <url><loc>https://www.ihatepdf.net/remove-duplicate-lines</loc></url>
+  <url><loc>https://www.ihatepdf.net/remove-extra-spaces</loc></url>
+  <url><loc>https://www.ihatepdf.net/text-reverser</loc></url>
+  <url><loc>https://www.ihatepdf.net/slug-generator</loc></url>
+  <url><loc>https://www.ihatepdf.net/lorem-ipsum-generator</loc></url>
+  <url><loc>https://www.ihatepdf.net/text-diff-checker</loc></url>
+  <url><loc>https://www.ihatepdf.net/json-formatter</loc></url>
+  <url><loc>https://www.ihatepdf.net/base64-tool</loc></url>
+  <url><loc>https://www.ihatepdf.net/url-encoder</loc></url>
+  <url><loc>https://www.ihatepdf.net/jwt-decoder</loc></url>
+  <url><loc>https://www.ihatepdf.net/hash-generator</loc></url>
+  <url><loc>https://www.ihatepdf.net/uuid-generator</loc></url>
+  <url><loc>https://www.ihatepdf.net/color-converter</loc></url>
+  <url><loc>https://www.ihatepdf.net/csv-to-json</loc></url>
+  <url><loc>https://www.ihatepdf.net/json-to-csv</loc></url>
+  <url><loc>https://www.ihatepdf.net/timestamp-converter</loc></url>
+  <url><loc>https://www.ihatepdf.net/date-difference-calculator</loc></url>
+  <url><loc>https://www.ihatepdf.net/countdown-timer</loc></url>
+  <url><loc>https://www.ihatepdf.net/invoice-generator</loc></url>
+  <url><loc>https://www.ihatepdf.net/percentage-calculator</loc></url>
+  <url><loc>https://www.ihatepdf.net/loan-emi-calculator</loc></url>
+  <url><loc>https://www.ihatepdf.net/summarize-pdf</loc></url>
+  <url><loc>https://www.ihatepdf.net/ask-pdf</loc></url>
 </urlset>

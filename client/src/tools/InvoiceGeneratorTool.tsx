@@ -99,8 +99,14 @@ export default function InvoiceGeneratorTool() {
     page.drawText("Total:", { x: margin + 380, y, size: 11, font: bold });
     page.drawText(grandTotal.toFixed(2), { x: margin + 460, y, size: 11, font: bold });
 
-    const blob = new Blob([await doc.save()], { type: "application/pdf" });
-    downloadBlob(blob, `${invoiceNumber || "invoice"}.pdf`);
+const bytes = await doc.save();
+
+const buffer = new ArrayBuffer(bytes.byteLength);
+new Uint8Array(buffer).set(bytes);
+
+const blob = new Blob([buffer], {
+  type: "application/pdf",
+});    downloadBlob(blob, `${invoiceNumber || "invoice"}.pdf`);
   }
 
   return (
