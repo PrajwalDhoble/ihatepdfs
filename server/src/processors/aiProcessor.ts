@@ -66,8 +66,13 @@ async function callAi(systemPrompt: string, userPrompt: string): Promise<string>
 
   let json: { choices?: { message?: { content?: string } }[] };
   try {
-    json = await res.json();
-  } catch {
+json = (await res.json()) as {
+  choices?: {
+    message?: {
+      content?: string;
+    };
+  }[];
+};  } catch {
     throw new AppError("The AI service returned a response that wasn't valid JSON.", "AI_BAD_RESPONSE", 502);
   }
 
