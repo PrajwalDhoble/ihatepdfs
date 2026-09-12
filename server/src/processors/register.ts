@@ -32,6 +32,7 @@ import { extractPdfText, comparePdfs } from "./pdfTextProcessor.js";
 import { protectPdf, unlockPdf } from "./pdfSecurityProcessor.js";
 import { makeCloudConvertConverter, makePdfToImageConverter } from "./officeConversionProcessor.js";
 import { ocrPdf } from "./ocrProcessor.js";
+import { summarizePdf, askPdf } from "./aiProcessor.js";
 import { fillPdfForm } from "./pdfFormProcessor.js";
 
 /**
@@ -83,6 +84,10 @@ export function registerAllProcessors(): void {
   registerProcessor("pdf-to-jpg", makePdfToImageConverter("jpg"));
   registerProcessor("pdf-to-png", makePdfToImageConverter("png"));
   registerProcessor("ocr-pdf", ocrPdf);
+
+  // AI (paid): summarize, Q&A
+  registerProcessor("summarize-pdf", summarizePdf);
+  registerProcessor("ask-pdf", askPdf);
 
   // Image compression / resize
   registerProcessor("compress-image", compressImage);

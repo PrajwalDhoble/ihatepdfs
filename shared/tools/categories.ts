@@ -11,6 +11,7 @@ export const CATEGORIES: ToolCategoryInfo[] = [
   { id: "security", name: "Security Tools", slug: "security-tools", description: "Protect, unlock and secure your files." },
   { id: "time", name: "Time Tools", slug: "time-tools", description: "Date, time and scheduling utilities." },
   { id: "developer", name: "Developer Tools", slug: "developer-tools", description: "Utilities for developers." },
+  { id: "ai", name: "AI Tools", slug: "ai-tools", description: "AI-powered summarization and Q&A for your documents." },
 ];
 
 export function getCategory(id: string): ToolCategoryInfo | undefined {

@@ -8,7 +8,8 @@ export type ToolCategory =
   | "business"
   | "security"
   | "time"
-  | "developer";
+  | "developer"
+  | "ai";
 
 export type ToolStatus = "active" | "coming-soon";
 export type ExecutionMode = "client" | "server";

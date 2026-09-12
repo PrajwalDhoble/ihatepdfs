@@ -15,6 +15,9 @@ export const TOOL_FIELD_SPECS: Record<string, OptionField[]> = {
   "unlock-pdf": [
     { key: "password", type: "password", label: "This PDF's current password" },
   ],
+  "ask-pdf": [
+    { key: "question", type: "text", label: "Your question about this PDF", placeholder: "What are the key terms in this contract?" },
+  ],
   "annotate-pdf": [
     { key: "text", type: "text", label: "Note text", placeholder: "Please review this section" },
     { key: "page", type: "number", label: "Page number", min: 1 },

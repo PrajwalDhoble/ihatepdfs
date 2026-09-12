@@ -190,6 +190,61 @@ export const TOOLS: Tool[] = [
 
   // ---------------- TEXT / DATA / BUSINESS ----------------
   defineTool({ name: "Word Counter", slug: "word-counter", category: "text", status: "active", description: "Count words, characters, sentences and paragraphs in your text.", aliases: ["count words", "character counter"], keywords: ["word counter", "character count"], inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: [] }),
+
+  // ---------------- TEXT TOOLS ----------------
+  defineTool({ name: "Case Converter", slug: "case-converter", category: "text", status: "active", description: "Convert text to UPPERCASE, lowercase, Title Case or Sentence case.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["word-counter"] }),
+  defineTool({ name: "Find and Replace", slug: "find-and-replace", category: "text", status: "active", description: "Find and replace text, with optional case-sensitive and whole-word matching.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["case-converter"] }),
+  defineTool({ name: "Remove Duplicate Lines", slug: "remove-duplicate-lines", category: "text", status: "active", description: "Remove duplicate lines from a block of text.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["remove-extra-spaces"] }),
+  defineTool({ name: "Remove Extra Spaces", slug: "remove-extra-spaces", category: "text", status: "active", description: "Clean up extra spaces, tabs and blank lines from text.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["remove-duplicate-lines"] }),
+  defineTool({ name: "Text Reverser", slug: "text-reverser", category: "text", status: "active", description: "Reverse text character by character, word by word, or line by line.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["case-converter"] }),
+  defineTool({ name: "Slug Generator", slug: "slug-generator", category: "text", status: "active", description: "Convert text into a clean URL-friendly slug.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["case-converter"] }),
+  defineTool({ name: "Lorem Ipsum Generator", slug: "lorem-ipsum-generator", category: "text", status: "active", description: "Generate placeholder Lorem Ipsum text for mockups and design.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["word-counter"] }),
+  defineTool({ name: "Text Diff Checker", slug: "text-diff-checker", category: "text", status: "active", description: "Compare two blocks of text and see a line-by-line diff.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["compare-pdfs"] }),
+
+  // ---------------- DEVELOPER TOOLS ----------------
+  defineTool({ name: "JSON Formatter", slug: "json-formatter", category: "developer", status: "active", description: "Format, validate and minify JSON.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["csv-to-json"] }),
+  defineTool({ name: "Base64 Encode/Decode", slug: "base64-tool", category: "developer", status: "active", description: "Encode text to Base64 or decode Base64 back to text.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["url-encoder"] }),
+  defineTool({ name: "URL Encode/Decode", slug: "url-encoder", category: "developer", status: "active", description: "Encode or decode URL-safe text (percent-encoding).", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["base64-tool"] }),
+  defineTool({ name: "JWT Decoder", slug: "jwt-decoder", category: "developer", status: "active", description: "Decode a JWT's header and payload. Does not verify the signature.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["base64-tool"] }),
+  defineTool({ name: "Hash Generator", slug: "hash-generator", category: "developer", status: "active", description: "Generate SHA-1, SHA-256, SHA-384 or SHA-512 hashes of text.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["uuid-generator"] }),
+  defineTool({ name: "UUID Generator", slug: "uuid-generator", category: "developer", status: "active", description: "Generate random UUIDs (v4), one or in bulk.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["hash-generator"] }),
+  defineTool({ name: "Color Converter", slug: "color-converter", category: "developer", status: "active", description: "Convert colors between HEX, RGB and HSL.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: [] }),
+
+  // ---------------- DATA TOOLS ----------------
+  defineTool({ name: "CSV to JSON", slug: "csv-to-json", category: "data", status: "active", description: "Convert CSV data into JSON.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["json-to-csv", "json-formatter"] }),
+  defineTool({ name: "JSON to CSV", slug: "json-to-csv", category: "data", status: "active", description: "Convert a JSON array of objects into CSV.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["csv-to-json", "json-formatter"] }),
+
+  // ---------------- TIME TOOLS ----------------
+  defineTool({ name: "Timestamp Converter", slug: "timestamp-converter", category: "time", status: "active", description: "Convert between Unix timestamps and human-readable dates.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["date-difference-calculator"] }),
+  defineTool({ name: "Date Difference Calculator", slug: "date-difference-calculator", category: "time", status: "active", description: "Calculate the number of days, weeks or months between two dates.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["timestamp-converter"] }),
+  defineTool({ name: "Countdown Timer", slug: "countdown-timer", category: "time", status: "active", description: "Set a countdown timer to any future date and time.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["date-difference-calculator"] }),
+
+  // ---------------- BUSINESS TOOLS ----------------
+  defineTool({ name: "Invoice Generator", slug: "invoice-generator", category: "business", status: "active", description: "Create a simple, professional invoice and download it as a PDF.", inputFormats: [], outputFormats: ["pdf"], executionMode: "client", maxFiles: 0, relatedTools: ["compress-pdf"] }),
+  defineTool({ name: "Percentage Calculator", slug: "percentage-calculator", category: "business", status: "active", description: "Calculate percentages, percentage change, and percentage of a total.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["loan-emi-calculator"] }),
+  defineTool({ name: "Loan EMI Calculator", slug: "loan-emi-calculator", category: "business", status: "active", description: "Calculate monthly loan installments (EMI) from principal, rate and term.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["percentage-calculator"] }),
+
+  // ---------------- AI TOOLS ----------------
+  defineTool({
+    name: "Summarize PDF",
+    slug: "summarize-pdf",
+    category: "ai",
+    status: "active",
+    description: "Get an AI-generated summary of a PDF's content. Requires an AI API key configured on the server.",
+    inputFormats: ["pdf"],
+    outputFormats: ["txt"],
+    relatedTools: ["ask-pdf", "extract-pdf-text"],
+  }),
+  defineTool({
+    name: "Ask AI About a PDF",
+    slug: "ask-pdf",
+    category: "ai",
+    status: "active",
+    description: "Ask a question about a PDF's content and get an AI-generated answer. Requires an AI API key configured on the server.",
+    inputFormats: ["pdf"],
+    outputFormats: ["txt"],
+    relatedTools: ["summarize-pdf", "extract-pdf-text"],
+  }),
 ];
 
 export function getAllTools(): Tool[] {

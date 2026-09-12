@@ -1,23 +1,22 @@
 import { useState } from "react";
-import { Tool } from "@shared/tools";
 import Button from "@/components/Button";
-import { inspectFillablePdf, createJob, getJobStatus, getJobDownloadUrl, ApiError, FormFieldInfo } from "@/services/api";
+import { downloadBlob } from "@/utils/downloadBlob";
+import { inspectPdfFormClient, fillPdfFormClient, ClientFormFieldInfo, ClientPdfError } from "@/lib/clientPdf";
 
-type Stage = "upload" | "fill" | "processing" | "done" | "error";
+type Stage = "upload" | "fill" | "done";
 
-export default function FillPdfTool({ tool }: { tool: Tool }) {
+export default function FillPdfTool() {
   const [stage, setStage] = useState<Stage>("upload");
   const [file, setFile] = useState<File | null>(null);
-  const [fields, setFields] = useState<FormFieldInfo[]>([]);
+  const [fields, setFields] = useState<ClientFormFieldInfo[]>([]);
   const [values, setValues] = useState<Record<string, string | boolean>>({});
   const [error, setError] = useState<string | null>(null);
-  const [jobId, setJobId] = useState<string | null>(null);
 
   async function handleFileSelected(selected: File) {
     setError(null);
     setFile(selected);
     try {
-      const detectedFields = await inspectFillablePdf(selected);
+      const detectedFields = await inspectPdfFormClient(selected);
       if (detectedFields.length === 0) {
         setError("This PDF doesn't appear to have any fillable form fields.");
         return;
@@ -25,39 +24,57 @@ export default function FillPdfTool({ tool }: { tool: Tool }) {
       setFields(detectedFields);
       setStage("fill");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't read this PDF's form fields.");
+      setError(err instanceof ClientPdfError ? err.message : "Couldn't read this PDF's form fields.");
     }
   }
 
   async function handleSubmit() {
     if (!file) return;
-    setStage("processing");
     setError(null);
     try {
-      const created = await createJob(tool.slug, [file], { values });
-      let status = created;
-      const start = Date.now();
-      while (status.status !== "done" && status.status !== "failed") {
-        if (Date.now() - start > 60_000) throw new ApiError("Processing timed out.", "TIMEOUT", 408);
-        await new Promise((r) => setTimeout(r, 800));
-        status = await getJobStatus(created.jobId);
-      }
-      if (status.status === "failed") throw new ApiError(status.error ?? "Processing failed.", "PROCESSING_FAILED", 500);
-      setJobId(created.jobId);
+      const blob = await fillPdfFormClient(file, values);
+      downloadBlob(blob, `filled-${file.name}`);
       setStage("done");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Processing failed. Please try again.");
-      setStage("error");
+      setError(err instanceof ClientPdfError ? err.message : "Couldn't fill this PDF.");
     }
   }
 
-  if (stage === "done" && jobId) {
+  const badge = (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        fontSize: 12,
+        fontWeight: 600,
+        color: "var(--color-accent)",
+        background: "#e6f9f2",
+        padding: "4px 10px",
+        borderRadius: 999,
+        marginBottom: "var(--space-3)",
+      }}
+    >
+      🔒 Processed locally in your browser — never uploaded
+    </div>
+  );
+
+  if (stage === "done") {
     return (
-      <div style={{ padding: "var(--space-5)", background: "var(--color-primary-light)", border: "1px solid var(--color-primary)", borderRadius: "var(--radius-lg)" }}>
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>Your filled PDF is ready</div>
-        <a href={getJobDownloadUrl(jobId)}>
-          <Button>Download result</Button>
-        </a>
+      <div>
+        {badge}
+        <p style={{ fontSize: 13, color: "var(--color-ink-soft)" }}>Download started.</p>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setStage("upload");
+            setFile(null);
+            setValues({});
+          }}
+        >
+          Fill another PDF
+        </Button>
       </div>
     );
   }
@@ -65,6 +82,7 @@ export default function FillPdfTool({ tool }: { tool: Tool }) {
   if (stage === "upload") {
     return (
       <div>
+        {badge}
         <label
           style={{
             display: "block",
@@ -91,6 +109,7 @@ export default function FillPdfTool({ tool }: { tool: Tool }) {
 
   return (
     <div>
+      {badge}
       <p style={{ fontSize: 13, color: "var(--color-ink-soft)" }}>
         Found {fields.length} field{fields.length === 1 ? "" : "s"} in <strong>{file?.name}</strong>.
       </p>
@@ -131,9 +150,7 @@ export default function FillPdfTool({ tool }: { tool: Tool }) {
       </div>
 
       <div style={{ marginTop: "var(--space-4)" }}>
-        <Button onClick={handleSubmit} disabled={stage === "processing"}>
-          {stage === "processing" ? "Filling…" : "Fill PDF"}
-        </Button>
+        <Button onClick={handleSubmit}>Fill PDF</Button>
       </div>
 
       {error && <p role="alert" style={{ color: "var(--color-danger)", fontSize: 13, marginTop: 8 }}>{error}</p>}

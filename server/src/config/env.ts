@@ -65,6 +65,13 @@ export const env = {
   // open-source but must be installed on the host OS (it's a system binary,
   // not an npm package) — see README for install instructions per OS.
   qpdfPath: process.env.QPDF_PATH ?? "qpdf",
+
+  // AI API for Summarize PDF / Ask AI About a PDF. Any OpenAI-compatible
+  // chat completions endpoint works (OpenAI itself, or a compatible
+  // provider) — set AI_API_URL if not using OpenAI's default endpoint.
+  aiApiKey: cleanEnvValue(process.env.AI_API_KEY),
+  aiApiUrl: process.env.AI_API_URL ?? "https://api.openai.com/v1/chat/completions",
+  aiModel: process.env.AI_MODEL ?? "gpt-4o-mini",
 };
 
 export { required };

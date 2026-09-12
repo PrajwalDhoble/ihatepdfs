@@ -5,25 +5,19 @@ import WordCounterTool from "./WordCounterTool";
 import ImageInfoTool from "./ImageInfoTool";
 import FillPdfTool from "./FillPdfTool";
 import { isClientPdfTool, renderClientPdfTool } from "./clientPdfToolRegistry";
+import { isUtilityTool, renderUtilityTool } from "./utilityToolRegistry";
+import CountdownTimerTool from "./CountdownTimerTool";
+import InvoiceGeneratorTool from "./InvoiceGeneratorTool";
+import { PercentageCalculatorTool, LoanEmiCalculatorTool } from "./CalculatorTools";
 import DynamicOptionsForm from "./DynamicOptionsForm";
 import { TOOL_FIELD_SPECS, coerceOptions } from "./toolFieldSpecs";
-import { CompressImageOptions, CompressPdfOptions } from "./toolOptionFields";
+import { CompressImageOptions } from "./toolOptionFields";
 
 const IMAGE_COMPRESS_SLUGS = ["compress-image", "compress-jpg", "compress-png", "compress-webp"];
-const SIMPLE_CONVERTER_SLUGS = [
-  "jpg-to-png",
-  "png-to-jpg",
-  "jpg-to-webp",
-  "png-to-webp",
-  "webp-to-jpg",
-  "webp-to-png",
-  "jpg-to-pdf",
-  "png-to-pdf",
-];
+const SIMPLE_CONVERTER_SLUGS = ["jpg-to-png", "png-to-jpg", "jpg-to-webp", "png-to-webp", "webp-to-jpg", "webp-to-png"];
 const CLIENT_ONLY_INFO_SLUGS = ["image-dimensions", "image-format-detector"];
 
 const DEFAULT_OPTIONS_BY_SLUG: Record<string, Record<string, unknown>> = {
-  "compress-pdf": { quality: "balanced" },
   "rotate-image": { degrees: 90 },
   "flip-image": { direction: "horizontal" },
   "image-dpi-changer": { dpi: 300 },
@@ -40,7 +34,7 @@ const EXACTLY_TWO_FILES = (count: number) => (count !== 2 ? "Upload exactly two 
  */
 export function renderActiveTool(tool: Tool): ReactNode {
   if (tool.slug === "word-counter") return <WordCounterTool />;
-  if (tool.slug === "fill-pdf") return <FillPdfTool tool={tool} />;
+  if (tool.slug === "fill-pdf") return <FillPdfTool />;
   if (CLIENT_ONLY_INFO_SLUGS.includes(tool.slug)) {
     return <ImageInfoTool mode={tool.slug === "image-dimensions" ? "dimensions" : "format"} />;
   }
@@ -52,18 +46,16 @@ export function renderActiveTool(tool: Tool): ReactNode {
     return renderClientPdfTool(tool);
   }
 
+  if (isUtilityTool(tool.slug)) {
+    return renderUtilityTool(tool.slug);
+  }
+  if (tool.slug === "countdown-timer") return <CountdownTimerTool />;
+  if (tool.slug === "invoice-generator") return <InvoiceGeneratorTool />;
+  if (tool.slug === "percentage-calculator") return <PercentageCalculatorTool />;
+  if (tool.slug === "loan-emi-calculator") return <LoanEmiCalculatorTool />;
+
   if (tool.slug === "compare-pdfs") {
     return <ActiveFileTool tool={tool} validateBeforeSubmit={EXACTLY_TWO_FILES} />;
-  }
-
-  if (tool.slug === "compress-pdf") {
-    return (
-      <ActiveFileTool
-        tool={tool}
-        defaultOptions={DEFAULT_OPTIONS_BY_SLUG["compress-pdf"]}
-        renderOptions={(o, s) => <CompressPdfOptions options={o} setOptions={s} />}
-      />
-    );
   }
 
   if (IMAGE_COMPRESS_SLUGS.includes(tool.slug)) {

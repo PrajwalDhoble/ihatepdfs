@@ -5,6 +5,8 @@ import DynamicOptionsForm from "./DynamicOptionsForm";
 import { TOOL_FIELD_SPECS, coerceOptions } from "./toolFieldSpecs";
 import {
   mergePdfsClient,
+  compressPdfClient,
+  imagesToPdfClient,
   splitPdfClient,
   rotatePdfClient,
   deletePdfPagesClient,
@@ -36,6 +38,9 @@ import WorkflowBuilderTool from "./WorkflowBuilderTool";
 const CLIENT_PDF_SLUGS = new Set([
   "merge-pdf",
   "split-pdf",
+  "compress-pdf",
+  "jpg-to-pdf",
+  "png-to-pdf",
   "rotate-pdf",
   "delete-pdf-pages",
   "extract-pdf-pages",
@@ -66,6 +71,30 @@ function nameFor(file: File, suffix: string): string {
 
 export function renderClientPdfTool(tool: Tool): ReactNode {
   switch (tool.slug) {
+    case "compress-pdf":
+      return (
+        <ClientPdfTool
+          tool={tool}
+          defaultOptions={{ quality: "balanced" }}
+          renderOptions={(o, s) => (
+            <DynamicOptionsForm
+              options={o}
+              setOptions={s}
+              fields={[{ key: "quality", type: "select", label: "Compression level", choices: [
+                { value: "best", label: "Best Quality" },
+                { value: "balanced", label: "Balanced" },
+                { value: "small", label: "Small File" },
+              ] }]}
+            />
+          )}
+          run={async (files, options) => [{ blob: await compressPdfClient(files[0], { quality: options.quality as "small" | "balanced" | "best" }), filename: nameFor(files[0], "compressed") }]}
+        />
+      );
+
+    case "jpg-to-pdf":
+    case "png-to-pdf":
+      return <ClientPdfTool tool={tool} run={async (files) => [{ blob: await imagesToPdfClient(files), filename: "converted.pdf" }]} />;
+
     case "merge-pdf":
       return (
         <ClientPdfTool

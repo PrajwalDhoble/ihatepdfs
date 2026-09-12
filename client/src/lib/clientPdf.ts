@@ -40,6 +40,42 @@ function parsePageList(input: string, totalPages: number): number[] {
 function toBlob(bytes: Uint8Array): Blob {
 return new Blob([new Uint8Array(bytes)], { type: "application/pdf" });}
 
+interface CompressPdfClientOptions {
+  quality?: "small" | "balanced" | "best";
+}
+
+export async function compressPdfClient(file: File, opts: CompressPdfClientOptions = {}): Promise<Blob> {
+  const doc = await loadPdfOrThrow(file);
+  if (opts.quality === "small") {
+    doc.setTitle("");
+    doc.setAuthor("");
+    doc.setSubject("");
+    doc.setKeywords([]);
+    doc.setProducer("");
+    doc.setCreator("");
+  }
+  const bytes = await doc.save({ useObjectStreams: true, addDefaultPage: false });
+  return toBlob(new Uint8Array(bytes));
+}
+
+/** Embeds JPG/PNG images directly (no format conversion needed since pdf-lib supports both natively). */
+export async function imagesToPdfClient(files: File[]): Promise<Blob> {
+  const doc = await PDFDocument.create();
+  for (const file of files) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const isPng = file.type.includes("png") || file.name.toLowerCase().endsWith(".png");
+    let image;
+    try {
+      image = isPng ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+    } catch {
+      throw new ClientPdfError(`Couldn't read "${file.name}" — make sure it's a valid JPG or PNG.`);
+    }
+    const page = doc.addPage([image.width, image.height]);
+    page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+  }
+  return toBlob(await doc.save());
+}
+
 export async function mergePdfsClient(files: File[]): Promise<Blob> {
   if (files.length < 2) throw new ClientPdfError("Select at least two PDF files to merge.");
   const merged = await PDFDocument.create();
@@ -386,6 +422,54 @@ export async function textToPdfClient(opts: TextToPdfOptions): Promise<Blob> {
 
   return toBlob(await doc.save());
 }
+export interface ClientFormFieldInfo {
+  name: string;
+  type: "text" | "checkbox" | "dropdown" | "radio" | "unsupported";
+  options?: string[];
+}
+
+/** Reads a PDF's AcroForm fields locally — no upload. Powers the client-side Fill PDF flow. */
+export async function inspectPdfFormClient(file: File): Promise<ClientFormFieldInfo[]> {
+  const doc = await loadPdfOrThrow(file);
+  let fields;
+  try {
+    fields = doc.getForm().getFields();
+  } catch {
+    return [];
+  }
+  return fields.map((field) => {
+    const name = field.getName();
+    const ctorName = field.constructor.name;
+    if (ctorName === "PDFTextField") return { name, type: "text" as const };
+    if (ctorName === "PDFCheckBox") return { name, type: "checkbox" as const };
+    if (ctorName === "PDFDropdown") return { name, type: "dropdown" as const, options: (field as unknown as { getOptions: () => string[] }).getOptions() };
+    if (ctorName === "PDFRadioGroup") return { name, type: "radio" as const, options: (field as unknown as { getOptions: () => string[] }).getOptions() };
+    return { name, type: "unsupported" as const };
+  });
+}
+
+export async function fillPdfFormClient(file: File, values: Record<string, string | boolean>): Promise<Blob> {
+  if (Object.keys(values).length === 0) throw new ClientPdfError("No field values were provided.");
+  const doc = await loadPdfOrThrow(file);
+  const form = doc.getForm();
+  const fieldsByName = new Map(form.getFields().map((f) => [f.getName(), f]));
+
+  for (const [fieldName, value] of Object.entries(values)) {
+    const field = fieldsByName.get(fieldName);
+    if (!field) continue;
+    const ctorName = field.constructor.name;
+    if (ctorName === "PDFTextField") (field as unknown as { setText: (v: string) => void }).setText(String(value));
+    else if (ctorName === "PDFCheckBox") {
+      const cb = field as unknown as { check: () => void; uncheck: () => void };
+      value ? cb.check() : cb.uncheck();
+    } else if (ctorName === "PDFDropdown" || ctorName === "PDFRadioGroup") {
+      (field as unknown as { select: (v: string) => void }).select(String(value));
+    }
+  }
+
+  return toBlob(await doc.save());
+}
+
 export async function annotatePdfClient(  file: File,
   opts: { text: string; page?: number; x?: number; y?: number }
 ): Promise<Blob> {
