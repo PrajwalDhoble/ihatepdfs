@@ -70,8 +70,9 @@ export const env = {
   // chat completions endpoint works (OpenAI itself, or a compatible
   // provider) — set AI_API_URL if not using OpenAI's default endpoint.
   aiApiKey: cleanEnvValue(process.env.AI_API_KEY),
-  aiApiUrl: process.env.AI_API_URL ?? "https://api.openai.com/v1/chat/completions",
-  aiModel: process.env.AI_MODEL ?? "gpt-4o-mini",
+aiApiUrl:
+  process.env.AI_API_URL ??
+  "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",  aiModel: process.env.AI_MODEL ?? "gemini-3.8-flash",
 };
 
 export { required };
