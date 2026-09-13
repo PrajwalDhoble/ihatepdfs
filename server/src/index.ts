@@ -23,7 +23,7 @@ async function main() {
   const app = createApp();
   app.set("trust proxy", 1);
   const server = app.listen(env.port, () => {
-    console.log(`[server] RepairMyPDF API listening on port ${env.port} (${env.nodeEnv})`);
+    console.log(`[server] I Hate PDF API listening on port ${env.port} (${env.nodeEnv})`);
   });
 
   function shutdown() {

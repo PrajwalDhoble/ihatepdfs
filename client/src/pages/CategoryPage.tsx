@@ -3,7 +3,6 @@ import { CATEGORIES, getToolsByCategory } from "@shared/tools";
 import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ToolCard from "@/components/ToolCard";
-import AdSlot from "@/components/AdSlot";
 import { buildBreadcrumbSchema } from "@/seo/structuredData";
 
 interface CategoryPageProps {
@@ -23,7 +22,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
   return (
     <div className="container" style={{ padding: "var(--space-6) 0 var(--space-8)" }}>
       <SEOHead
-        title={`${category.name} — Free Online ${category.name} | RepairMyPDF`}
+        title={`${category.name} — Free Online ${category.name} | I Hate PDF`}
         description={category.description}
         canonical={`/${category.slug}`}
         structuredData={buildBreadcrumbSchema([{ label: "Home", href: "/" }, { label: category.name }])}
@@ -42,7 +41,6 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
 
       {tools.length === 0 && <p>No tools in this category yet. Check back soon.</p>}
 
-      <AdSlot placement="lower-page" />
     </div>
   );
 }

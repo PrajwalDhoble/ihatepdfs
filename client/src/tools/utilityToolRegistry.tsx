@@ -25,6 +25,8 @@ import {
   unixToDate,
   dateToUnix,
   dateDifference,
+  markdownToHtml,
+  htmlToText,
 } from "@/lib/textTools";
 
 const UTILITY_SLUGS = new Set([
@@ -47,6 +49,8 @@ const UTILITY_SLUGS = new Set([
   "json-to-csv",
   "timestamp-converter",
   "date-difference-calculator",
+  "markdown-to-html",
+  "html-to-text",
 ]);
 
 export function isUtilityTool(slug: string): boolean {
@@ -285,6 +289,12 @@ export function renderUtilityTool(slug: string): ReactNode {
           actionLabel="Calculate"
         />
       );
+
+    case "markdown-to-html":
+      return <TextUtilityTool inputLabel="Markdown" inputPlaceholder={"# Heading\n\nSome **bold** text."} run={(input) => markdownToHtml(input)} />;
+
+    case "html-to-text":
+      return <TextUtilityTool inputLabel="HTML" inputPlaceholder="<p>Hello <strong>world</strong></p>" run={(input) => htmlToText(input)} />;
 
     default:
       return null;

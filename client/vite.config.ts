@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from "fs";
 import { getAllTools, CATEGORIES } from "../shared/tools";
+import { BLOG_POSTS } from "./src/blog/posts";
 
 /**
  * Generates sitemap.xml and robots.txt directly into the build output.
@@ -17,15 +18,16 @@ function seoFilesPlugin(): Plugin {
   return {
     name: "generate-seo-files",
     closeBundle() {
-      const siteUrl = process.env.VITE_SITE_URL ?? "https://www.repairmypdf.com";
+      const siteUrl = process.env.VITE_SITE_URL ?? "https://ihatepdf.net";
       const outDir = path.resolve(__dirname, "dist");
 
-      const staticPaths = ["/", "/about", "/contact", "/privacy", "/terms", "/security", "/help"];
+      const staticPaths = ["/", "/about", "/contact", "/privacy", "/terms", "/security", "/help", "/all-tools", "/blog"];
       const categoryPaths = CATEGORIES.map((c) => `/${c.slug}`);
       const toolPaths = getAllTools()
         .filter((t) => t.status === "active")
         .map((t) => t.seo.canonical);
-      const urls = [...staticPaths, ...categoryPaths, ...toolPaths];
+      const blogPaths = BLOG_POSTS.map((p) => `/blog/${p.slug}`);
+      const urls = [...staticPaths, ...categoryPaths, ...toolPaths, ...blogPaths];
 
       const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

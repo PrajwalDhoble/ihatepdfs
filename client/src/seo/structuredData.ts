@@ -1,7 +1,7 @@
 import { Tool } from "@shared/tools";
 
-const SITE_URL = import.meta.env.VITE_SITE_URL ?? "https://www.repairmypdf.com";
-const SITE_NAME = "RepairMyPDF";
+const SITE_URL = import.meta.env.VITE_SITE_URL ?? "https://ihatepdf.net";
+const SITE_NAME = "I Hate PDF";
 
 export function buildOrganizationSchema() {
   return {

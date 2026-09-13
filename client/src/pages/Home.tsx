@@ -3,7 +3,6 @@ import SEOHead from "@/components/SEOHead";
 import SearchBox from "@/components/SearchBox";
 import ToolCard from "@/components/ToolCard";
 import FAQ from "@/components/FAQ";
-import AdSlot from "@/components/AdSlot";
 import { Link } from "react-router-dom";
 import { buildWebsiteSchema, buildOrganizationSchema } from "@/seo/structuredData";
 import { useRecentTools } from "@/hooks/useRecentTools";
@@ -18,8 +17,8 @@ const TRUST_POINTS = [
 ];
 
 const HOME_FAQ = [
-  { q: "Do I need an account to use RepairMyPDF?", a: "No — no tool requires an account or sign-up." },
-  { q: "Is RepairMyPDF free to use?", a: "Yes, all core tools are free with no watermark added to your files." },
+  { q: "Do I need an account to use I Hate PDF?", a: "No — no tool requires an account or sign-up." },
+  { q: "Is I Hate PDF free to use?", a: "Yes, all core tools are free with no watermark added to your files." },
   { q: "Are my files ever uploaded to a server?", a: "For most PDF page tools (merge, split, rotate, watermark, and more), no — they run entirely in your browser and the file never leaves your device. Tools that need format conversion or OCR do process on a server, in an isolated, temporary workspace that's deleted immediately afterward." },
 ];
 
@@ -31,29 +30,53 @@ export default function Home() {
   return (
     <>
       <SEOHead
-        title="RepairMyPDF — Fix, Convert and Optimize Your Files Online"
+        title="I Hate PDF — Fix, Convert and Optimize Your Files Online"
         description="Simple online tools for PDFs, images and documents. Compress, convert, merge, split and optimize files in seconds. No installation, no account required."
         canonical="/"
         structuredData={[buildWebsiteSchema(), buildOrganizationSchema()]}
       />
 
-      <section style={{ textAlign: "center", padding: "var(--space-8) 0 var(--space-6)" }}>
+      <section
+        style={{
+          textAlign: "center",
+          padding: "var(--space-8) 0 var(--space-7)",
+          background: "linear-gradient(180deg, var(--color-primary-light) 0%, var(--color-bg) 65%)",
+        }}
+      >
         <div className="container">
-          <h1 style={{ fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 800 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 12.5,
+              fontWeight: 700,
+              color: "var(--color-primary)",
+              background: "var(--color-bg)",
+              border: "1px solid var(--color-border)",
+              padding: "6px 14px",
+              borderRadius: 999,
+              marginBottom: "var(--space-4)",
+              boxShadow: "var(--shadow-sm)",
+            }}
+          >
+            ✨ 80+ free tools · no sign-up
+          </div>
+          <h1 style={{ fontSize: "clamp(32px, 5.5vw, 52px)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1 }}>
             Fix, convert and optimize your files.
           </h1>
-          <p style={{ maxWidth: 560, margin: "0 auto var(--space-6)", fontSize: 16 }}>
+          <p style={{ maxWidth: 580, margin: "var(--space-4) auto var(--space-6)", fontSize: 17, color: "var(--color-ink-soft)" }}>
             Simple online tools for PDFs, images and documents. Compress, convert, merge, split and optimize files in seconds.
           </p>
-          <div style={{ maxWidth: 560, margin: "0 auto" }}>
+          <div style={{ maxWidth: 580, margin: "0 auto" }}>
             <SearchBox placeholder="What do you want to do? e.g. Compress PDF, Reduce JPG to 100KB" />
           </div>
         </div>
       </section>
 
-      <section className="container" style={{ marginTop: "var(--space-6)" }}>
+      <section className="container" style={{ marginTop: "var(--space-7)" }}>
         <h2 style={{ fontSize: 20 }}>Popular tools</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "var(--space-4)" }}>
+        <div className="responsive-grid">
           {popularTools.map((tool) => (
             <ToolCard key={tool.id} tool={tool} />
           ))}
@@ -70,10 +93,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      <section className="container" style={{ marginTop: "var(--space-7)" }}>
-        <AdSlot placement="in-content" />
-      </section>
 
       <section className="container" style={{ marginTop: "var(--space-6)" }}>
         <h2 style={{ fontSize: 20 }}>Browse by category</h2>

@@ -2,9 +2,9 @@ import StaticPage from "./StaticPage";
 
 export default function About() {
   return (
-    <StaticPage title="About" description="Learn about RepairMyPDF, a simple online file utility platform." canonical="/about">
+    <StaticPage title="About" description="Learn about I Hate PDF, a simple online file utility platform." canonical="/about">
       <p>
-        RepairMyPDF is an online file utility platform built to help people fix, convert and optimize PDFs,
+        I Hate PDF is an online file utility platform built to help people fix, convert and optimize PDFs,
         images and documents without installing software or creating an account.
       </p>
       <p>
@@ -12,7 +12,7 @@ export default function About() {
         email, a document that needs merging, an image that needs converting — and expanding carefully from there.
       </p>
       <p>
-        Every tool on RepairMyPDF either works as described or is clearly marked "Coming Soon." We don't publish
+        Every tool on I Hate PDF either works as described or is clearly marked "Coming Soon." We don't publish
         placeholder buttons that don't do anything.
       </p>
     </StaticPage>

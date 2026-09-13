@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { getAllTools, CATEGORIES } from "../../../shared/tools/index.js";
 const router = Router();
-const SITE_URL = process.env.SITE_URL ?? "https://www.repairmypdf.com";
+const SITE_URL = process.env.SITE_URL ?? "https://ihatepdf.net";
 
 // Only real, active, indexable tool + category pages ever appear here —
 // no job/upload/download URLs, no query-parameter duplicates, no

@@ -144,10 +144,15 @@ button {
   position: sticky;
   top: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 200ms ease;
+  transition: transform 200ms ease, width 180ms ease;
   z-index: 100;
+}
+
+.sidebar.is-collapsed {
+  width: 64px;
 }
 
 .sidebar-main {
@@ -166,10 +171,12 @@ button {
 }
 
 @media (max-width: 900px) {
-  .sidebar {
+  .sidebar,
+  .sidebar.is-collapsed {
     position: fixed;
     left: 0;
     top: 0;
+    width: 260px;
     transform: translateX(-100%);
     box-shadow: var(--shadow-lg);
   }
@@ -218,4 +225,25 @@ button {
     min-height: 40px;
   }
 }
+
+.btn-polished:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.btn-polished:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.96);
+}
+
+.tool-card-polished {
+  transition: box-shadow 150ms ease, transform 150ms ease, border-color 150ms ease;
+}
+
+.tool-card-polished:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+}
+
 

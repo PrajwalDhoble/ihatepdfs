@@ -13,7 +13,7 @@ export default function Footer() {
           }}
         >
           <div>
-            <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>RepairMyPDF</div>
+            <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>I Hate PDF</div>
             <p style={{ fontSize: 13, maxWidth: 220 }}>Fix, convert and optimize your files. Fast, simple and secure — no installation required.</p>
           </div>
 
@@ -44,6 +44,7 @@ export default function Footer() {
             <h4 style={{ fontSize: 13, textTransform: "uppercase", color: "var(--color-ink-soft)" }}>Company</h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
               <li><Link to="/about" style={{ fontSize: 14, color: "var(--color-ink-soft)" }}>About</Link></li>
+              <li><Link to="/blog" style={{ fontSize: 14, color: "var(--color-ink-soft)" }}>Blog</Link></li>
               <li><Link to="/contact" style={{ fontSize: 14, color: "var(--color-ink-soft)" }}>Contact</Link></li>
               <li><Link to="/privacy" style={{ fontSize: 14, color: "var(--color-ink-soft)" }}>Privacy</Link></li>
               <li><Link to="/terms" style={{ fontSize: 14, color: "var(--color-ink-soft)" }}>Terms</Link></li>
@@ -54,7 +55,7 @@ export default function Footer() {
         </div>
 
         <div style={{ marginTop: "var(--space-6)", paddingTop: "var(--space-4)", borderTop: "1px solid var(--color-border)", fontSize: 12, color: "var(--color-ink-soft)" }}>
-          © {new Date().getFullYear()} RepairMyPDF. All rights reserved.
+          © {new Date().getFullYear()} I Hate PDF. All rights reserved.
         </div>
       </div>
     </footer>

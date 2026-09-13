@@ -5,6 +5,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
   return (
     <Link
       to={`/${tool.slug}`}
+      className="tool-card-polished"
       style={{
         display: "block",
         padding: "var(--space-5)",
@@ -13,11 +14,8 @@ export default function ToolCard({ tool }: { tool: Tool }) {
         background: "var(--color-bg)",
         textDecoration: "none",
         color: "inherit",
-        transition: "box-shadow 120ms ease, transform 120ms ease",
         position: "relative",
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-md)")}
-      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
     >
       {tool.status === "coming-soon" && (
         <span

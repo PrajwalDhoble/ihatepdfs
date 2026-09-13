@@ -2,7 +2,7 @@ import StaticPage from "./StaticPage";
 
 export default function Privacy() {
   return (
-    <StaticPage title="Privacy Policy" description="How RepairMyPDF handles your files and data." canonical="/privacy">
+    <StaticPage title="Privacy Policy" description="How I Hate PDF handles your files and data." canonical="/privacy">
       <p><strong>Last updated:</strong> {new Date().getFullYear()}</p>
       <h2>File processing</h2>
       <p>

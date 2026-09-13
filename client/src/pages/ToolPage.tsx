@@ -4,7 +4,6 @@ import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import FAQ from "@/components/FAQ";
 import RelatedTools from "@/components/RelatedTools";
-import AdSlot from "@/components/AdSlot";
 import { buildToolSchema, buildBreadcrumbSchema } from "@/seo/structuredData";
 import { renderActiveTool } from "@/tools/activeToolRegistry";
 import { useRecordToolVisit } from "@/hooks/useRecentTools";
@@ -79,7 +78,6 @@ export default function ToolPage({ slug }: ToolPageProps) {
         )}
       </div>
 
-      <AdSlot placement="below-tool" />
 
       <section style={{ marginTop: "var(--space-7)", maxWidth: 720 }}>
         {tool.slug !== "word-counter" && (

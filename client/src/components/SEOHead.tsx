@@ -7,7 +7,7 @@ interface SEOHeadProps {
   structuredData?: object | object[];
 }
 
-const SITE_URL = import.meta.env.VITE_SITE_URL ?? "https://www.repairmypdf.com";
+const SITE_URL = import.meta.env.VITE_SITE_URL ?? "https://ihatepdf.net";
 
 function setMeta(name: string, content: string, attr: "name" | "property" = "name") {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${name}"]`);

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export default function Help() {
   return (
-    <StaticPage title="Help" description="Get help using RepairMyPDF tools." canonical="/help">
+    <StaticPage title="Help" description="Get help using I Hate PDF tools." canonical="/help">
       <p>Most tools follow the same steps: upload your file, adjust options if needed, run the tool, then download your result.</p>
       <h2>Common questions</h2>
       <p>

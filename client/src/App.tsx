@@ -10,6 +10,9 @@ import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Security from "@/pages/Security";
 import Help from "@/pages/Help";
+import AllToolsPage from "@/pages/AllToolsPage";
+import BlogPage from "@/pages/BlogPage";
+import BlogPostPage from "@/pages/BlogPostPage";
 import NotFound from "@/pages/NotFound";
 
 export default function App() {
@@ -24,6 +27,9 @@ export default function App() {
         <Route path="terms" element={<Terms />} />
         <Route path="security" element={<Security />} />
         <Route path="help" element={<Help />} />
+        <Route path="all-tools" element={<AllToolsPage />} />
+        <Route path="blog" element={<BlogPage />} />
+        <Route path="blog/:slug" element={<BlogPostPage />} />
 
         <Route path="404" element={<NotFound />} />
         <Route path="*" element={<ResolveSlug />} />
