@@ -72,7 +72,7 @@ export const env = {
   aiApiKey: cleanEnvValue(process.env.AI_API_KEY),
 aiApiUrl:
   process.env.AI_API_URL ??
-  "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",  aiModel: process.env.AI_MODEL ?? "gemini-2.5-flash",
+  "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",  aiModel: process.env.AI_MODEL ?? "gemini-3.5-flash",
 };
 
 export { required };
