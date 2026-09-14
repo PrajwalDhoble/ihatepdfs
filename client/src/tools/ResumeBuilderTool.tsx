@@ -163,8 +163,11 @@ export default function ResumeBuilderTool() {
       drawParagraph(skills);
     }
 
-    const blob = new Blob([await doc.save()], { type: "application/pdf" });
-    downloadBlob(blob, `${name.replace(/\s+/g, "-") || "resume"}.pdf`);
+const pdfBytes = await doc.save();
+const pdfBuffer = new ArrayBuffer(pdfBytes.byteLength);
+new Uint8Array(pdfBuffer).set(pdfBytes);
+
+const blob = new Blob([pdfBuffer], { type: "application/pdf" });    downloadBlob(blob, `${name.replace(/\s+/g, "-") || "resume"}.pdf`);
   }
 
   return (
