@@ -8,7 +8,7 @@ import { ProcessorInput } from "./index.js";
 function assertAiConfigured(): void {
   if (!env.aiApiKey) {
     throw new AppError(
-      "This tool needs an AI API key. Set AI_API_KEY in server/.env (any OpenAI-compatible provider works; set AI_API_URL too if not using OpenAI directly).",
+      "This tool needs a Gemini API key. Get a free key at https://aistudio.google.com/apikey and set AI_API_KEY in server/.env.",
       "AI_NOT_CONFIGURED",
       503
     );
@@ -25,27 +25,40 @@ async function extractText(filePath: string): Promise<string> {
   }
 }
 
-// Most chat-completion APIs enforce a token limit well below what a long
-// PDF's raw text would use — this is a simple, safe character cap rather
-// than a real tokenizer, deliberately conservative.
+// Gemini's context window is large, but this stays a conservative,
+// deliberately simple character cap rather than a real tokenizer.
 const MAX_CHARS = 24000;
 
+interface GeminiResponse {
+  candidates?: {
+    content?: {
+      parts?: { text?: string }[];
+    };
+  }[];
+  promptFeedback?: {
+    blockReason?: string;
+  };
+}
+
+/**
+ * Calls Google's Gemini API (generateContent). Gemini was chosen as the
+ * default over OpenAI specifically because it has a genuinely usable free
+ * tier — this app isn't generating revenue yet, so a free AI provider
+ * matters. Any Gemini-compatible request/response shape works; if you
+ * switch providers, this is the one function that needs updating.
+ */
 async function callAi(systemPrompt: string, userPrompt: string): Promise<string> {
+  const url = `${env.aiApiUrl}/models/${env.aiModel}:generateContent?key=${env.aiApiKey}`;
+
   let res: Response;
   try {
-    res = await fetch(env.aiApiUrl, {
+    res = await fetch(url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.aiApiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: env.aiModel,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.3,
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ parts: [{ text: userPrompt }] }],
+        generationConfig: { temperature: 0.3 },
       }),
     });
   } catch (err) {
@@ -59,24 +72,26 @@ async function callAi(systemPrompt: string, userPrompt: string): Promise<string>
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     if (res.status === 401 || res.status === 403) {
-      throw new AppError(`The AI service rejected the API key (HTTP ${res.status}). Check AI_API_KEY in server/.env.`, "AI_AUTH_FAILED", 502);
+      throw new AppError(`Gemini rejected the API key (HTTP ${res.status}). Check AI_API_KEY in server/.env.`, "AI_AUTH_FAILED", 502);
+    }
+    if (res.status === 429) {
+      throw new AppError("Gemini's free-tier rate limit was hit. Wait a moment and try again.", "AI_RATE_LIMITED", 429);
     }
     throw new AppError(`The AI service returned an error (HTTP ${res.status}). ${body.slice(0, 300)}`, "AI_ERROR", 502);
   }
 
-  let json: { choices?: { message?: { content?: string } }[] };
+  let json: GeminiResponse;
   try {
-json = (await res.json()) as {
-  choices?: {
-    message?: {
-      content?: string;
-    };
-  }[];
-};  } catch {
+    json = (await res.json()) as GeminiResponse;
+  } catch {
     throw new AppError("The AI service returned a response that wasn't valid JSON.", "AI_BAD_RESPONSE", 502);
   }
 
-  const content = json.choices?.[0]?.message?.content;
+  if (json.promptFeedback?.blockReason) {
+    throw new AppError(`Gemini declined to respond (reason: ${json.promptFeedback.blockReason}).`, "AI_BLOCKED", 502);
+  }
+
+  const content = json.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!content) throw new AppError("The AI service returned an empty response.", "AI_BAD_RESPONSE", 502);
   return content;
 }
@@ -120,5 +135,47 @@ export async function askPdf({ inputPaths, outputDir, options }: ProcessorInput)
 
   const outputPath = path.join(outputDir, "answer.txt");
   await fs.writeFile(outputPath, `Q: ${question}\n\nA: ${answer}`);
+  return [outputPath];
+}
+
+interface TranslatePdfOptions {
+  targetLanguage?: string;
+}
+
+export async function translatePdf({ inputPaths, outputDir, options }: ProcessorInput): Promise<string[]> {
+  assertAiConfigured();
+  const opts = options as TranslatePdfOptions;
+  const targetLanguage = (opts.targetLanguage ?? "").trim();
+  if (!targetLanguage) throw new AppError("Choose a target language to translate into.", "MISSING_OPTIONS", 400);
+
+  const text = await extractText(inputPaths[0]);
+  if (!text.trim()) {
+    throw new AppError("No extractable text was found in this PDF — it may be scanned/image-only.", "NO_TEXT", 400);
+  }
+
+  const translation = await callAi(
+    `You translate documents accurately and naturally into ${targetLanguage}, preserving meaning, tone, and paragraph structure. Return only the translated text, with no commentary.`,
+    text.slice(0, MAX_CHARS)
+  );
+
+  const outputPath = path.join(outputDir, `translation-${targetLanguage.toLowerCase().replace(/\s+/g, "-")}.txt`);
+  await fs.writeFile(outputPath, translation);
+  return [outputPath];
+}
+
+export async function reviewResume({ inputPaths, outputDir }: ProcessorInput): Promise<string[]> {
+  assertAiConfigured();
+  const text = await extractText(inputPaths[0]);
+  if (!text.trim()) {
+    throw new AppError("No extractable text was found in this PDF — it may be scanned/image-only.", "NO_TEXT", 400);
+  }
+
+  const review = await callAi(
+    "You are an experienced hiring manager and resume reviewer. Give clear, constructive, specific feedback on a resume: clarity, impact of bullet points (are they specific and measurable, or vague?), structure, and anything that would likely hurt it with an applicant tracking system. Be direct and practical, not just encouraging.",
+    `Resume content:\n\n${text.slice(0, MAX_CHARS)}`
+  );
+
+  const outputPath = path.join(outputDir, "resume-review.txt");
+  await fs.writeFile(outputPath, review);
   return [outputPath];
 }

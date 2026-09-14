@@ -223,6 +223,7 @@ export const TOOLS: Tool[] = [
 
   // ---------------- BUSINESS TOOLS ----------------
   defineTool({ name: "Invoice Generator", slug: "invoice-generator", category: "business", status: "active", description: "Create a simple, professional invoice and download it as a PDF.", inputFormats: [], outputFormats: ["pdf"], executionMode: "client", maxFiles: 0, relatedTools: ["compress-pdf"] }),
+  defineTool({ name: "Resume Builder", slug: "resume-builder", category: "business", status: "active", description: "Build a clean, professional resume and download it as a PDF.", inputFormats: [], outputFormats: ["pdf"], executionMode: "client", maxFiles: 0, relatedTools: ["ai-resume-review", "invoice-generator"] }),
   defineTool({ name: "Percentage Calculator", slug: "percentage-calculator", category: "business", status: "active", description: "Calculate percentages, percentage change, and percentage of a total.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["loan-emi-calculator"] }),
   defineTool({ name: "Loan EMI Calculator", slug: "loan-emi-calculator", category: "business", status: "active", description: "Calculate monthly loan installments (EMI) from principal, rate and term.", inputFormats: [], outputFormats: [], executionMode: "client", maxFiles: 0, relatedTools: ["percentage-calculator"] }),
 
@@ -246,6 +247,26 @@ export const TOOLS: Tool[] = [
     inputFormats: ["pdf"],
     outputFormats: ["txt"],
     relatedTools: ["summarize-pdf", "extract-pdf-text"],
+  }),
+  defineTool({
+    name: "Translate PDF",
+    slug: "translate-pdf",
+    category: "ai",
+    status: "active",
+    description: "Get an AI translation of a PDF's text content into another language. Requires an AI API key configured on the server.",
+    inputFormats: ["pdf"],
+    outputFormats: ["txt"],
+    relatedTools: ["summarize-pdf", "extract-pdf-text"],
+  }),
+  defineTool({
+    name: "AI Resume Review",
+    slug: "ai-resume-review",
+    category: "ai",
+    status: "active",
+    description: "Get AI feedback on your resume — clarity, impact, and suggested improvements. Requires an AI API key configured on the server.",
+    inputFormats: ["pdf"],
+    outputFormats: ["txt"],
+    relatedTools: ["resume-builder", "summarize-pdf"],
   }),
 ];
 

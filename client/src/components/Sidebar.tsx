@@ -52,7 +52,17 @@ export default function Sidebar() {
         className={`sidebar${isOpen ? " is-open" : ""}${collapsed ? " is-collapsed" : ""}`}
         aria-label="Sidebar navigation"
       >
-        <div style={{ padding: collapsed ? "var(--space-4) var(--space-2)" : "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-4)", flex: 1 }}>
+        <div
+          style={{
+            padding: collapsed ? "var(--space-4) var(--space-2)" : "var(--space-4)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-4)",
+            flex: "1 1 auto",
+            minHeight: 0,
+            overflowY: "auto",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", minHeight: 32 }}>
             {!collapsed && (
               <Link to="/" onClick={() => setIsOpen(false)} style={{ fontWeight: 800, fontSize: 17, color: "var(--color-ink)", textDecoration: "none", letterSpacing: "-0.01em" }}>
@@ -124,6 +134,7 @@ export default function Sidebar() {
             alignItems: "center",
             justifyContent: collapsed ? "center" : "space-between",
             gap: 8,
+            flexShrink: 0,
           }}
         >
           {!collapsed && (

@@ -18,6 +18,20 @@ export const TOOL_FIELD_SPECS: Record<string, OptionField[]> = {
   "ask-pdf": [
     { key: "question", type: "text", label: "Your question about this PDF", placeholder: "What are the key terms in this contract?" },
   ],
+  "translate-pdf": [
+    { key: "targetLanguage", type: "select", label: "Translate into", choices: [
+      { value: "Spanish", label: "Spanish" },
+      { value: "French", label: "French" },
+      { value: "German", label: "German" },
+      { value: "Portuguese", label: "Portuguese" },
+      { value: "Italian", label: "Italian" },
+      { value: "Hindi", label: "Hindi" },
+      { value: "Japanese", label: "Japanese" },
+      { value: "Chinese (Simplified)", label: "Chinese (Simplified)" },
+      { value: "Arabic", label: "Arabic" },
+      { value: "English", label: "English" },
+    ] },
+  ],
   "annotate-pdf": [
     { key: "text", type: "text", label: "Note text", placeholder: "Please review this section" },
     { key: "page", type: "number", label: "Page number", min: 1 },

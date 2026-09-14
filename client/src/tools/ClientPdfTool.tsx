@@ -1,4 +1,4 @@
-import { useState, ReactNode } from "react";
+import { useState, useRef, useEffect, ReactNode } from "react";
 import { Tool } from "@shared/tools";
 import UploadZone from "@/components/UploadZone";
 import Button from "@/components/Button";
@@ -30,6 +30,13 @@ export default function ClientPdfTool({ tool, run, renderOptions, defaultOptions
   const [status, setStatus] = useState<"idle" | "processing" | "done" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [resultCount, setResultCount] = useState(0);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (status === "done") {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [status]);
 
   async function handleRun() {
     setErrorMessage(null);
@@ -102,7 +109,7 @@ export default function ClientPdfTool({ tool, run, renderOptions, defaultOptions
       </div>
 
       {status === "done" && (
-        <div style={{ marginTop: 10 }}>
+        <div ref={resultRef} style={{ marginTop: 10 }}>
           <p style={{ fontSize: 13, color: "var(--color-ink-soft)" }}>
             {resultCount > 1 ? `${resultCount} files downloaded.` : "Download started."}
           </p>

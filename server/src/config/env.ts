@@ -69,10 +69,13 @@ export const env = {
   // AI API for Summarize PDF / Ask AI About a PDF. Any OpenAI-compatible
   // chat completions endpoint works (OpenAI itself, or a compatible
   // provider) — set AI_API_URL if not using OpenAI's default endpoint.
+  // AI API for Summarize PDF / Ask AI About a PDF / Translate PDF / AI
+  // Resume Review. Uses Google's Gemini API by default — it has a genuinely
+  // usable free tier (unlike OpenAI), which matters when the app isn't
+  // generating revenue yet. Get a free key at https://aistudio.google.com/apikey.
   aiApiKey: cleanEnvValue(process.env.AI_API_KEY),
-aiApiUrl:
-  process.env.AI_API_URL ??
-  "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",  aiModel: process.env.AI_MODEL ?? "gemini-3.5-flash",
+  aiApiUrl: process.env.AI_API_URL ?? "https://generativelanguage.googleapis.com/v1beta",
+  aiModel: process.env.AI_MODEL ?? "gemini-3.5-flash",
 };
 
 export { required };

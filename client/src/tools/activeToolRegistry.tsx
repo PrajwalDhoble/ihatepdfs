@@ -8,6 +8,7 @@ import { isClientPdfTool, renderClientPdfTool } from "./clientPdfToolRegistry";
 import { isUtilityTool, renderUtilityTool } from "./utilityToolRegistry";
 import CountdownTimerTool from "./CountdownTimerTool";
 import InvoiceGeneratorTool from "./InvoiceGeneratorTool";
+import ResumeBuilderTool from "./ResumeBuilderTool";
 import { PercentageCalculatorTool, LoanEmiCalculatorTool } from "./CalculatorTools";
 import DynamicOptionsForm from "./DynamicOptionsForm";
 import { TOOL_FIELD_SPECS, coerceOptions } from "./toolFieldSpecs";
@@ -51,6 +52,7 @@ export function renderActiveTool(tool: Tool): ReactNode {
   }
   if (tool.slug === "countdown-timer") return <CountdownTimerTool />;
   if (tool.slug === "invoice-generator") return <InvoiceGeneratorTool />;
+  if (tool.slug === "resume-builder") return <ResumeBuilderTool />;
   if (tool.slug === "percentage-calculator") return <PercentageCalculatorTool />;
   if (tool.slug === "loan-emi-calculator") return <LoanEmiCalculatorTool />;
 

@@ -1,4 +1,4 @@
-import { useState, ReactNode } from "react";
+import { useState, useRef, useEffect, ReactNode } from "react";
 import { Tool } from "@shared/tools";
 import UploadZone from "@/components/UploadZone";
 import Button from "@/components/Button";
@@ -34,6 +34,18 @@ export default function ActiveFileTool({
   const [runState, setRunState] = useState<RunState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // When processing finishes, the page content shrinks from the full
+  // upload/options form down to just this result box — the browser keeps
+  // the previous scroll position, so the download button ends up above the
+  // visible viewport until the user manually scrolls up. Scroll it into
+  // view automatically instead.
+  useEffect(() => {
+    if (runState === "done") {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [runState]);
 
   async function pollUntilDone(id: string): Promise<JobResponse> {
     const start = Date.now();
@@ -97,7 +109,7 @@ export default function ActiveFileTool({
 
   if (runState === "done" && jobId) {
     return (
-      <div>
+      <div ref={resultRef}>
         <div
           role="status"
           style={{
